@@ -11,14 +11,23 @@ Gestão de Rebanho Bovino
    - data nascimento
    - proprietário
    - número
-   - status
    - sexo
+   - [ ] Animal status
+      - status observação
+      - data
+   - [ ] Animail Pesagem
+      - data
+      - animal
+      - peso
+   - [ ] Animal Fotos
+      - data
+      - foto
 - [ ] Vacinações
    - data
    - remédio
-- [ ] VacinacaoAnimais
-   - Vacinação
-   - Animal
+   - [ ] VacinacaoAnimais
+      - Vacinação
+      - Animal
 - Gerais
    - [ ] Fazendas
    - [ ] Proprietários
@@ -31,4 +40,6 @@ Gestão de Rebanho Bovino
 - Animais por vacinação
 - Animais por idade (bezerros, garrote, adulto)
 - Animais por sexo 
+- Animal evolução peso
+- Animal fotos
 
