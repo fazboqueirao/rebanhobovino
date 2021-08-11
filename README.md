@@ -15,10 +15,11 @@ Gestão de Rebanho Bovino
    - [ ] Animal status
       - status observação
       - data
-   - [ ] Animail Pesagem
+   - [ ] Animal Pesagem
       - data
       - animal
       - peso
+   - [ ] Animal evolução peso
    - [ ] Animal Fotos
       - data
       - foto
@@ -36,10 +37,6 @@ Gestão de Rebanho Bovino
 
 ### Relatórios
 
-- Animais por proprietário
+- Animais por proprietário, sexo e idade (bezerros, garrote, adulto)
 - Animais por vacinação
-- Animais por idade (bezerros, garrote, adulto)
-- Animais por sexo 
-- Animal evolução peso
 - Animal fotos
-
