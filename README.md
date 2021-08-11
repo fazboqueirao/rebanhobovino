@@ -1,25 +1,32 @@
-# rebanhobovino
+# Rebanho Bovino
 Gestão de Rebanho Bovino
 
 ## Funcionalidades
 
 ### Cadastros
 
-- [ ] Fazendas
-- Proprietários
-- Animais
+- [ ] Animais
    - data nascimento
    - proprietário
    - número
    - status
-- Vacinações
+   - sexo
+- [ ] Vacinações
    - data
    - remédio
-- VacinacaoAnimais
-- Status
+- [ ] VacinacaoAnimais
+   - Vacinação
+   - Animal
+- Gerais
+   - [ ] Fazendas
+   - [ ] Proprietários
+   - [ ] Idade Animal (bezerros, garrote, adulto)
+   - [ ] Status do Animal (Vivo, Morto, Vendido)
 
 ### Relatórios
 
 - Animais por proprietário
 - Animais por vacinação
+- Animais por idade (bezerros, garrote, adulto)
+- Animais por sexo 
 
