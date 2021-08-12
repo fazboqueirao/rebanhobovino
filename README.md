@@ -5,6 +5,8 @@ Gestão de Rebanho Bovino
 
 ## Funcionalidades
 
+Proposta de funcionalidades futuras.
+
 ### Cadastros
 
 - [ ] Animais
