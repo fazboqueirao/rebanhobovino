@@ -3,6 +3,19 @@ Gestão de Rebanho Bovino
 
 ![Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=black)
 
+---
+
+<!-- TOC -->
+
+- [Rebanho Bovino](#rebanho-bovino)
+    - [Funcionalidades](#funcionalidades)
+        - [Cadastros](#cadastros)
+        - [Relatórios](#relat%C3%B3rios)
+
+<!-- /TOC -->
+
+---
+
 ## Funcionalidades
 
 Proposta de funcionalidades futuras.
