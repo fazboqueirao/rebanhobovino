@@ -14,6 +14,7 @@ Proposta de funcionalidades futuras.
    - proprietário
    - número
    - sexo
+   - número animal mãe
    - [ ] Animal status
       - status observação
       - data
@@ -42,3 +43,4 @@ Proposta de funcionalidades futuras.
 - Animais por proprietário, sexo e idade (bezerros, garrote, adulto)
 - Animais por vacinação
 - Animal fotos
+- Listar numeração vagas (numeração menor que o maior número)
