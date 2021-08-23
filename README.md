@@ -3,19 +3,6 @@ Gestão de Rebanho Bovino
 
 ![Laravel](https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=black)
 
----
-
-<!-- TOC -->
-
-- [Rebanho Bovino](#rebanho-bovino)
-    - [Funcionalidades](#funcionalidades)
-        - [Cadastros](#cadastros)
-        - [Relatórios](#relat%C3%B3rios)
-
-<!-- /TOC -->
-
----
-
 ## Funcionalidades
 
 Proposta de funcionalidades futuras.
@@ -27,7 +14,6 @@ Proposta de funcionalidades futuras.
    - proprietário
    - número
    - sexo
-   - número animal mãe
    - [ ] Animal status
       - status observação
       - data
@@ -53,7 +39,10 @@ Proposta de funcionalidades futuras.
 
 ### Relatórios
 
-- Animais por proprietário, sexo e idade (bezerros, garrote, adulto)
-- Animais por vacinação
-- Animal fotos
-- Listar numeração vagas (numeração menor que o maior número)
+- [ ] Animais por proprietário, sexo e idade (bezerros, garrote, adulto)
+- [ ] Animais por vacinação
+- [ ] Animal fotos
+
+## Instalação
+
+Procedimentos para instalar a aplicação:
