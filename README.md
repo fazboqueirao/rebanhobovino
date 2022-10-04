@@ -17,7 +17,7 @@ Gestão de Rebanho Bovino
 
 ## Funcionalidades
 
-Proposta de funcionalidades futuras.
+Proposta de funcionalidades futuras. Utilizar o [Laravel Wizard](https://www.larawiz.com) para modelar.
 
 ### Cadastros
 
