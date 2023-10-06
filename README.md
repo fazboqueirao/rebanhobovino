@@ -17,7 +17,7 @@ Gestão de Rebanho Bovino
 
 ## Funcionalidades
 
-Proposta de funcionalidades futuras. Utilizar o [Laravel Wizard](https://www.larawiz.com) para modelar.
+Proposta de funcionalidades futuras. Utilizar o [Laravel Wizard](https://www.larawiz.com) para modelar ou o [Filament](https://filamentphp.com/).
 
 ### Cadastros
 
@@ -39,15 +39,16 @@ Proposta de funcionalidades futuras. Utilizar o [Laravel Wizard](https://www.lar
       - foto
 - [ ] Vacinações
    - data
-   - remédio
+   - Medicação
    - [ ] VacinacaoAnimais
-      - Vacinação
+      - Medicação
       - Animal
-- Gerais
+- [ ] Gerais
    - [ ] Fazendas
    - [ ] Proprietários
    - [ ] Idade Animal (bezerros, garrote, adulto)
    - [ ] Status do Animal (Vivo, Morto, Vendido)
+   - [ ] Medicações
 
 ### Relatórios
 
