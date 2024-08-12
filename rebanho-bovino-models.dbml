@@ -1,0 +1,38 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table animais {
+  following_user_id integer
+  followed_user_id integer
+  created_at timestamp
+}
+
+Table vacinacoes {
+  following_user_id integer
+  followed_user_id integer
+  created_at timestamp
+}
+
+Table fazenda {
+  following_user_id integer
+  followed_user_id integer
+  created_at timestamp
+}
+
+Table proprietarios {
+  following_user_id integer
+  followed_user_id integer
+  created_at timestamp
+}
+
+Table animal_idade {
+  following_user_id integer
+  followed_user_id integer
+  created_at timestamp
+}
+
+Table medicacoes {
+  following_user_id integer
+  followed_user_id integer
+  created_at timestamp
+}
