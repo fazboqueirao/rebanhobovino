@@ -23,6 +23,8 @@ Utilizar o [Laravel Wizard](https://www.larawiz.com) para start ou o [Filament](
 
 Para modelagem usar o DbDiagram.io e o [arquivo .dbml](rebanho-bovino-models.dbml)
 
+![diagrama](diagram.png)
+
 ### Cadastros
 
 - [ ] Animais
