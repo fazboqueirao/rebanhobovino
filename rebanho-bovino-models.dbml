@@ -6,6 +6,8 @@ Table animal {
   id_animal_idade integer [ref: > animal_idade.id]
   id_proprietario integer [ref: > proprietario.id]
   id_fazenda integer [ref: > fazenda.id]
+  id_status integer [ref: > status.id]
+  brinco_numero integer
   created_at timestamp
 }
 
@@ -27,21 +29,17 @@ Table animal_medicacao {
   data_medicacao timestamp
 }
 
-Table vacinacao {
-  id integer [primary key]
-  vacina varchar[50]
-  data_vacinacao timestamp
-}
-
 Table fazenda {
   id integer [primary key]
   fazenda varchar[50]
   created_at timestamp
 }
 
-Table proprietario {
+Table foto {
   id integer [primary key]
-  proprietario varchar[150]
+  id_animal integer [ref: > animal.id]
+  arquivo varchar[100]
+  descricao varchar[250]
   created_at timestamp
 }
 
@@ -51,3 +49,21 @@ Table medicacao {
   created_at timestamp
 }
 
+Table proprietario {
+  id integer [primary key]
+  proprietario varchar[150]
+  brinco_cor varchar[50]
+  created_at timestamp
+}
+
+Table status {
+  id integer [primary key]
+  status varchar[50]
+  created_at timestamp
+}
+
+Table vacinacao {
+  id integer [primary key]
+  vacina varchar[50]
+  data_vacinacao timestamp
+}
