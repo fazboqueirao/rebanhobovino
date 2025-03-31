@@ -8,31 +8,38 @@ Table animal {
   id_fazenda integer [ref: > fazenda.id]
   id_status integer [ref: > status.id]
   brinco_numero integer
-  created_at timestamp
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
 }
 
 Table animal_idade {
   id integer [primary key]
   faixa_etaria varchar[50]
-  created_at timestamp
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
 }
 
 Table animal_vacina {
+  id integer [primary key]
   id_animal integer [ref: > animal.id]
   id_vacinacao integer [ref: > vacinacao.id]
   data_vacinacao timestamp
 }
 
 Table animal_medicacao {
+  id integer [primary key]
   id_animal integer [ref: > animal.id]
   id_medicacao integer [ref: > medicacao.id]
   data_medicacao timestamp
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
 }
 
 Table fazenda {
   id integer [primary key]
   fazenda varchar[50]
-  created_at timestamp
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
 }
 
 Table foto {
@@ -40,30 +47,36 @@ Table foto {
   id_animal integer [ref: > animal.id]
   arquivo varchar[100]
   descricao varchar[250]
-  created_at timestamp
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
 }
 
 Table medicacao {
   id integer [primary key]
   medicacao varchar[250]
-  created_at timestamp
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
 }
 
 Table proprietario {
   id integer [primary key]
   proprietario varchar[150]
   brinco_cor varchar[50]
-  created_at timestamp
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
 }
 
 Table status {
   id integer [primary key]
   status varchar[50]
-  created_at timestamp
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
 }
 
 Table vacinacao {
   id integer [primary key]
   vacina varchar[50]
   data_vacinacao timestamp
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
 }
