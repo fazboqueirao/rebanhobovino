@@ -5,7 +5,7 @@ Table animal {
   id integer [primary key]
   id_animal_idade integer [ref: > animal_idade.id]
   id_proprietario integer [ref: > proprietario.id]
-  id_fazenda integer [ref: > fazenda.id] [note: 'Referência para a fazenda']
+  id_fazenda integer [ref: > fazenda.id]
   id_status integer [ref: > status.id]
   brinco_numero integer [note: 'Numero do Brinco']
   brinco_cor varchar[50] [note: 'Cor do Brinco']
@@ -78,7 +78,7 @@ Table status {
 
 Table vacinacao {
   id integer [primary key]
-  vacina varchar[50]
+  vacina varchar[150]
   data_vacinacao timestamp
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
