@@ -5,16 +5,17 @@ Table animal {
   id integer [primary key]
   id_animal_idade integer [ref: > animal_idade.id]
   id_proprietario integer [ref: > proprietario.id]
-  id_fazenda integer [ref: > fazenda.id]
+  id_fazenda integer [ref: > fazenda.id] [note: 'Referência para a fazenda']
   id_status integer [ref: > status.id]
-  brinco_numero integer
+  brinco_numero integer [note: 'Numero do Brinco']
+  brinco_cor varchar[50] [note: 'Cor do Brinco']
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 }
 
 Table animal_idade {
   id integer [primary key]
-  faixa_etaria varchar[50]
+  faixa_etaria varchar[50] [note: 'Faixa Etária: 0-12 meses, 12-24 meses, 25 meses+']
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 }
@@ -37,7 +38,9 @@ Table animal_medicacao {
 
 Table fazenda {
   id integer [primary key]
-  fazenda varchar[50]
+  fazenda varchar[50] [note: 'Nome da fazenda']
+  logo varchar[100] [note: 'Logo da fazenda']
+  descricao text [note: 'Descrição da fazenda']
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 }
