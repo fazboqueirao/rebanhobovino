@@ -11,6 +11,7 @@ Table animal {
   brinco_cor varchar[50] [note: 'Cor do Brinco']
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
+  deleted_at timestamp [default: `now()`]
 }
 
 Table animal_idade {
@@ -52,6 +53,7 @@ Table foto {
   descricao varchar[250]
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
+  deleted_at timestamp [default: `now()`]
 }
 
 Table medicacao {
