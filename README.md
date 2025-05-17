@@ -19,7 +19,7 @@ Gestão de Rebanho Bovino
 
 Proposta de funcionalidades futuras.
 
-Utilizar o [Laravel Wizard](https://www.larawiz.com) para start ou o [Filament](https://filamentphp.com/).
+Utilizar o [Filament](https://filamentphp.com/).
 
 Para modelagem usar o DbDiagram.io e o [arquivo .dbml](rebanho-bovino-models.dbml)
 
