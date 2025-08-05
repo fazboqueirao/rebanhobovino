@@ -1,0 +1,8 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<a {!! $attributes->merge(['class' => 'vtheme(crud.action-link)']) !!}>
+    {{ $slot }}
+</a>

@@ -1,0 +1,69 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ page = Page ] #>
+<# DATA:RENDERABLE [ renderable = page/PageComponentRenderable(page) ] #>
+<####>
+
+
+<% const camelCase = this.require('camelCase') %>
+<% const paramCase = this.require('paramCase') %>
+<% const modelCollections = this.page.getModelCollections() %>
+<% const injectableModels = this.page.getInjectableModelsByRoute() %>
+<% const viewName = `pages.${this.page.section.getFolderName()}.${paramCase(this.page.name)}` %>
+
+namespace <$ this.page.namespace $>;
+
+use Livewire\Component;
+<% for (let model of injectableModels) { %>
+use App\Models\<$ model.name $>;
+<% } %>
+<% for (let model of modelCollections) { %>
+use App\Models\<$ model.name $>;
+<% } %>
+use Livewire\WithPagination;
+use Illuminate\Support\Collection;
+
+class <$ this.filenameWithoutExtension $> extends Component
+{
+    use WithPagination;
+
+    <% for (let model of injectableModels) { %>
+    public <$ model.name $> $<$ camelCase(model.name) $>;
+    <% } %>
+    <% for (let model of modelCollections) { %>
+    public Collection $<$ camelCase(model.plural) $>;
+    <% } %>
+
+    public function mount(
+        <% for (let [index, model] of injectableModels.entries()) { %>
+        <$ model.name $> $<$ camelCase(model.name) $>
+            <# add semicolon if necessary #>
+            <% if (index < injectableModels.length) { %>
+            ,
+            <% } %>
+        <% } %>
+    )
+    {
+        <% for (let model of injectableModels) { %>
+        $this-><$ camelCase(model.name) $> = $<$ camelCase(model.name) $>;
+        <% } %>
+        <% for (let model of modelCollections) { %>
+        $this-><$ camelCase(model.plural) $> = <$ model.name $>::all();
+        <% } %>
+    }
+
+    public function render()
+    {
+        return view('<$ viewName $>', [
+            <% for (let model of injectableModels) { %>
+            '<$ camelCase(model.name) $>' => $this-><$ camelCase(model.name) $>,
+            <% } %>
+            <% for (let model of modelCollections) { %>
+            '<$ camelCase(model.plural) $>' => $this-><$ camelCase(model.plural) $>,
+            <% } %>
+        ])->layout('layouts.guest');
+    }
+}

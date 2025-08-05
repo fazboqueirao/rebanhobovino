@@ -1,0 +1,41 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:RENDERABLE [ renderable = crud/api/ApiStoreRequestRenderable(crud) ] #>
+<####>
+
+
+namespace App\Http\Requests;
+
+<% if(this.crud.model.table.hasUniqueColumns()) { %>
+use Illuminate\Validation\Rule;
+<% } %>
+use Illuminate\Foundation\Http\FormRequest;
+
+class <$ this.filenameWithoutExtension $> extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     */
+    public function rules(): array
+    {
+        return [
+            <% for(let input of this.crud.inputs) { %>
+                <% if(!! input.creationRules.length) { %>
+                    '<$ input.name $>' => [<$ input.getCreationRulesForCrudRequest() $>],
+                <% } %>
+            <% } %>
+        ];
+    }
+}

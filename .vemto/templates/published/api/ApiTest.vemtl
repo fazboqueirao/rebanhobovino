@@ -1,0 +1,174 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:RENDERABLE [ renderable = crud/api/ApiTestRenderable(crud) ] #>
+<####>
+
+<# TEMPLATE VARIABLES #>
+<% const snakeCase = this.require('snakeCase') %>
+<% const camelCase = this.require('camelCase') %>
+<% const paramCase = this.require('paramCase') %>
+<% const pascalCase = this.require('pascalCase') %>
+<% const authModel = this.project.getAuthModel() %>
+<####>
+
+use <$ authModel.getClassString() $>;
+use <$ this.crud.model.getClassString() $>;
+<% for (let relationship of this.crud.model.getBelongsToRelations()) { %>
+    use <$ relationship.relatedModel.getClassString() $>;
+<% } %>
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
+
+uses(RefreshDatabase::class, WithFaker::class);
+
+beforeEach(function () {
+    $this->withoutExceptionHandling();
+
+    <% if(authModel !== null) { %>
+        $user = <$ authModel.name $>::factory()->create(['email' => 'admin@admin.com']);
+
+        Sanctum::actingAs($user, [], 'web');
+    <% } %>
+});
+
+test('it gets <$ snakeCase(this.crud.model.plural) $> list', function () {
+    $<$ camelCase(this.crud.model.plural) $> = <$ this.crud.model.name $>::factory()->count(5)->create();
+
+    $response = $this->get(route('api.<$ paramCase(this.crud.model.plural) $>.index'));
+
+    $response->assertOk()
+        ->assertSee($<$ camelCase(this.crud.model.plural) $>[0]-><$ this.crud.table.getLabelColumnName() $>);
+});
+
+test('it stores the <$ snakeCase(this.crud.model.name) $>', function () {
+    $data = <$ this.crud.model.name $>::factory()->make()->toArray();
+
+    <% for (let input of this.crud.getPasswordInputs()) { %>
+        <###>
+        <% if(input.isRequiredOnCreation()) { %>
+            $data['<$ input.name $>'] = \Str::random('8');
+        <% } %>
+    <% } %>
+
+    $response = $this->postJson(route('api.<$ paramCase(this.crud.model.plural) $>.store'), $data);
+
+    <% for(let input of this.crud.getPasswordInputs()) { %>
+        <###>
+        <% if(input.isRequiredOnCreation()) { %>
+            unset($data['<$ input.name $>']);
+        <% } %>
+    <% } %>
+
+    <% for(let column of this.crud.model.getNotFillableColumns()) { %>
+        <###>
+        <up if(!this.crud.model.hidden.includes(column.name) && !column.isPrimaryKey()) { up>
+            unset($data['<$ column.name $>']);
+        <up } up>
+    <% } %>
+    <###>
+    <% for(let columnName of this.crud.model.appends) { %>
+        unset($data['<$ columnName $>']);
+    <% } %>
+    <###>
+    <% for(let column of this.crud.model.getFillableColumnsWithoutInputs()) { %>
+        <###>
+        <% if(!this.crud.model.hidden.includes(column.name) && !column.isPrimaryKey()) { %>
+            unset($data['<$ column.name $>']);
+        <% } %>
+    <% } %>
+
+    $this->assertDatabaseHas('<$ this.crud.model.table.name $>', $data);
+
+    $response
+        ->assertStatus(201)
+        ->assertJsonFragment($data);
+});
+
+test('it updates the <$ snakeCase(this.crud.model.name) $>', function() {
+    <% let modelLabelColumn = this.crud.table.getLabelColumn() %>
+
+    $<$ camelCase(this.crud.model.name) $> = <$ this.crud.model.name $>::factory()->create();
+
+    <% for (let relationship of this.crud.model.getBelongsToRelations()) { %>
+        $<$ camelCase(relationship.relatedModel.name) $> = <$ pascalCase(relationship.relatedModel.name) $>::factory()->create();
+    <% } %>
+
+    $data = [
+        <% for (let column of this.crud.model.getFillableColumns()) { %>
+            <###>
+            <% if(column.faker && !column.isPrimaryKey() && !column.isForeignKey() && !this.crud.model.hidden.includes(column.name)) { %>
+                <###>
+                <% if(column.name !== 'password') { %>
+                    '<$ column.name $>' => <$ column.getFakerForTemplate() || modelLabelColumn.getFakerForTemplate() || '\Str::random(5)' $>,
+                <% } else { %>
+                    '<$ column.name $>' => \Str::random(8),
+                <% } %>
+            <% } %>
+        <% } %>
+        <###>
+        <% for (let relationship of this.crud.model.getBelongsToRelations()) { %>
+            '<$ relationship.foreignKey.name $>' => $<$ camelCase(relationship.relatedModel.name) $>-><$ relationship.relatedModel.getPrimaryKeyName() $>,
+        <% } %>
+    ];
+
+    <% for(let input of this.crud.getPasswordInputs()) { %>
+        <###>
+        <% if(input.isRequiredOnCreation()) { %>
+            $data['<$ input.name $>'] = \Str::random('8');
+        <% } %>
+    <% } %>
+
+    $response = $this->putJson(route('api.<$ paramCase(this.crud.model.plural) $>.update', $<$ camelCase(this.crud.model.name) $>), $data);
+
+    <% for(let input of this.crud.getPasswordInputs()) { %>
+        <###>
+        <% if(input.isRequiredOnCreation()) { %>
+            unset($data['<$ input.name $>']);
+        <% } %>
+    <% } %>
+
+    <% for(let column of this.crud.model.getNotFillableColumns()) { %>
+        <###>
+        <up if(!this.crud.model.hidden.includes(column.name) && !column.isPrimaryKey()) { up>
+            unset($data['<$ column.name $>']);
+        <up } up>
+    <% } %>
+    <###>
+    <% for(let columnName of this.crud.model.appends) { %>
+        unset($data['<$ columnName $>']);
+    <% } %>
+    <###>
+    <% for(let column of this.crud.model.getFillableColumnsWithoutInputs()) { %>
+        <###>
+        <% if(!this.crud.model.hidden.includes(column.name) && !column.isPrimaryKey()) { %>
+            unset($data['<$ column.name $>']);
+        <% } %>
+    <% } %>
+
+    $data['<$ this.crud.model.getPrimaryKeyName() $>'] = $<$ camelCase(this.crud.model.name) $>-><$ this.crud.model.getPrimaryKeyName() $>;
+
+    $this->assertDatabaseHas('<$ this.crud.model.table.name $>', $data);
+
+    $response
+        ->assertStatus(200)
+        ->assertJsonFragment($data);
+});
+
+test('it deletes the <$ snakeCase(this.crud.model.name) $>', function() {
+    $<$ camelCase(this.crud.model.name) $> = <$ this.crud.model.name $>::factory()->create();
+
+    $response = $this->deleteJson(route('api.<$ paramCase(this.crud.model.plural) $>.destroy', $<$ camelCase(this.crud.model.name) $>));
+
+    <% if(this.crud.model.hasSoftDeletes) { %>
+        $this->assertSoftDeleted($<$ camelCase(this.crud.model.name) $>);
+    <% } else { %>
+        $this->assertModelMissing($<$ camelCase(this.crud.model.name) $>);
+    <% } %>
+
+    $response->assertNoContent();
+});

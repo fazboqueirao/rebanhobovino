@@ -1,0 +1,334 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ input = Input ] #>
+<# DATA:EXPOSE_LOCAL [ exposed_variables = input ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<% const inputFormData = input.filamentSettings.formData %>
+<% const [inlineRules, individualRules] = input.getRulesForFilamentTemplate() %>
+<% const inputTypeIs = (type) => inputFormData.inputType === type %>
+<% const inputLabel = input.isBelongsTo() ? `'${capitalCase(input.relationship.name)}'` : this.helpers.toTranslatableFormat(input.label) %>
+
+<$ pascalCase(inputFormData.inputType) $>::make('<$ input.name $>')
+    ->label(<$ inputLabel $>)
+    <###>
+    <% if(inlineRules.length) { %>
+        ->rules([<$ inlineRules.join(', ') $>])
+    <% } %>
+    <###>
+    <% for(let rule of individualRules) { %>
+        <% const [methodName, args] = rule %>
+        <# --- #>
+        -><$ methodName $>(<$ args $>)
+        <###>
+        <% if(['required', 'nullable'].includes(methodName) && args.includes('$context')) { %>
+            ->dehydrated(fn ($state) => filled($state))
+        <% } %>
+    <% } %>
+    <# --- #>
+    <% if(input.isBelongsTo()) { %>
+        ->relationship('<$ input.relationship.name $>', '<$ input.relationship.relatedModel.table.getLabelColumnName() $>')
+    <% } %>
+    <# --- #>
+    <% if(input.isEmail()) { %>
+        ->email()
+    <% } %>
+    <# --- #>
+    <% if(input.isPassword()) { %>
+        ->password()
+        <% if(inputFormData.isRevealable) { %>
+            ->revealable()
+        <% } %>
+    <% } %>
+    <# --- #>
+    <% if(input.isNumber()) { %>
+        ->numeric()
+        ->step(<$ input.step $>)
+    <% } %>
+    <# --- #>
+    <% if(!input.showOnCreation) { %>
+        ->hiddenOn('create')
+    <% } %>
+    <# --- #>
+    <% if(!input.showOnUpdate) { %>
+        ->hiddenOn('edit')
+    <% } %>
+    <# --- #>
+    <% if(inputTypeIs('text-input') && inputFormData.autofocus) { %>
+        ->autofocus()
+    <% } %>
+    <# --- #>
+    <% if(inputTypeIs('text-input') && inputFormData.prefix) { %>
+        ->prefix('<$ inputFormData.prefix $>')
+    <% } %>
+    <# --- #>
+    <% if(inputTypeIs('text-input') && inputFormData.prefixIcon) { %>
+        ->prefixIcon('<$ inputFormData.prefixIcon $>')
+    <% } %>
+    <# --- #>
+    <% if(inputTypeIs('text-input') && inputFormData.prefixIconColor) { %>
+        ->prefixIconColor('<$ inputFormData.prefixIconColor $>')
+    <% } %>
+    <# --- #>
+    <% if(inputTypeIs('text-input') && inputFormData.suffix) { %>
+        ->suffix('<$ inputFormData.suffix $>')
+    <% } %>
+    <# --- #>
+    <% if(inputTypeIs('text-input') && inputFormData.suffixIcon) { %>
+        ->suffixIcon('<$ inputFormData.suffixIcon $>')
+    <% } %>
+    <# --- #>
+    <% if(inputTypeIs('text-input') && inputFormData.suffixIconColor) { %>
+        ->suffixIconColor('<$ inputFormData.suffixIconColor $>')
+    <% } %>
+    <# --- #>
+    <% if(inputTypeIs('text-input') && inputFormData.mask) { %>
+        ->mask('<$ inputFormData.mask $>')
+    <% } %>
+    <# --- #>
+    <% if(inputTypeIs('text-input') && inputFormData.inputMode) { %>
+        ->inputMode('<$ inputFormData.inputMode $>')
+    <% } %>
+    <# --- #>
+    <% if(inputTypeIs('toggle') && inputFormData.onIcon) { %>
+        ->onIcon('<$ inputFormData.onIcon $>')
+    <% } %>
+    <# --- #>
+    <% if(inputTypeIs('toggle') && inputFormData.offIcon) { %>
+        ->offIcon('<$ inputFormData.offIcon $>')
+    <% } %>
+    <# --- #>
+    <% if(inputTypeIs('toggle') && inputFormData.onColor) { %>
+        ->onColor('<$ inputFormData.onColor $>')
+    <% } %>
+    <# --- #>
+    <% if(inputTypeIs('toggle') && inputFormData.offColor) { %>
+        ->offColor('<$ inputFormData.offColor $>')
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.helperText && this.project.getDefaultTranslation(inputFormData.helperText)?.length) { %>
+        ->helperText(<$ this.helpers.toTranslatableFormat(inputFormData.helperText) $>)
+    <% } %>
+    <# --- #>
+    <% if(inputTypeIs('text-input') && inputFormData.autocapitalize) { %>
+        ->autocapitalize('<$ inputFormData.autocapitalize $>')
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.autoComplete === false || inputFormData.autoCompleteName) { %>
+        <% const autoCompleteParam = inputFormData.autoComplete === false ? false : `'${inputFormData.autoCompleteName}'` %>
+        ->autocomplete(<$ autoCompleteParam $>)
+    <% } %>
+    <# --- #>
+    <% if(input.defaultValue) { %>
+        ->default('<$ input.defaultValue $>')
+    <% } %>
+    <# --- #>
+    <% if(['text-input', 'date-time-picker'].includes(inputFormData.inputType) && inputFormData.dataList && inputFormData.dataList.length) { %>
+        ->datalist([
+            <% for(let option of inputFormData.dataList) { %>
+                '<$ option $>',
+            <% } %>
+        ])
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.isMultiple) { %>
+        ->multiple()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.canBeSearchable) { %>
+        ->searchable()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.canBePreloaded) { %>
+        ->preload()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.useCustomInput) { %>
+        ->native(false)
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.canSelectPlaceholder === false) { %>
+        ->selectablePlaceholder(false)
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.loadingMessage?.length && this.project.getDefaultTranslation(inputFormData.loadingMessage)?.length) { %>
+        ->loadingMessage(<$ this.helpers.toTranslatableFormat(inputFormData.loadingMessage) $>)
+        ->searchingMessage(<$ this.helpers.toTranslatableFormat(inputFormData.loadingMessage) $>)
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.noResultMessage?.length && this.project.getDefaultTranslation(inputFormData.noResultMessage)?.length) { %>
+        ->noSearchResultsMessage(<$ this.helpers.toTranslatableFormat(inputFormData.noResultMessage) $>)
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.searchMessage?.length && this.project.getDefaultTranslation(inputFormData.searchMessage)?.length) { %>
+        ->searchPrompt(<$ this.helpers.toTranslatableFormat(inputFormData.searchMessage) $>)
+    <% } %>
+    <# --- #>
+    <% if(input.items?.length) { %>
+        ->options([
+            <% for(let option of input.items) { %>
+                '<$ option.value $>' => '<$ option.label $>',
+            <% } %>
+        ])
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.disabledDates?.length) { %>
+        ->disabledDates([
+            <% for(let date of inputFormData.disabledDates) { %>
+                '<$ date $>',
+            <% } %>
+        ])
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.inline) { %>
+        ->inline()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.inlineLabel) { %>
+        ->inlineLabel()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.dateFormat) { %>
+        ->format('<$ inputFormData.dateFormat $>')
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.timezone) { %>
+        ->timezone('<$ inputFormData.timezone $>')
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.disableSeconds) { %>
+        ->seconds(false)
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.displayFormat) { %>
+        ->displayFormat('<$ inputFormData.displayFormat $>')
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.closeOnDateSelection) { %>
+        ->closeOnDateSelection()
+    <% } %>
+    <# --- #>
+    <% if(input.readOnly && ['textarea', 'text-input', 'date-time-picker'].includes(inputFormData.inputType)) { %>
+        ->readonly()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.disk && ['markdown-editor', 'rich-editor'].includes(inputFormData.inputType)) { %>
+        <% const methodName = input.isTextarea() ? 'fileAttachmentsDisk' : 'disk' %>
+        -><$ methodName $>('<$ inputFormData.disk $>')
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.directory && ['markdown-editor', 'rich-editor'].includes(inputFormData.inputType)) { %>
+        <% const methodName = input.isTextarea() ? 'fileAttachmentsDirectory' : 'directory' %>
+        -><$ methodName $>('<$ inputFormData.directory $>')
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.visibility && ['markdown-editor', 'rich-editor'].includes(inputFormData.inputType)) { %>
+        <% const methodName = input.isTextarea() ? 'fileAttachmentsVisibility' : 'visibility' %>
+        -><$ methodName $>('<$ inputFormData.visibility $>')
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.preserveFilenames) { %>
+        ->preserveFilenames()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.useAvatarMode) { %>
+        ->avatar()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.useImageEditor) { %>
+        ->image()
+        ->imageEditor()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.imageEditorAspectRatios?.length) { %>
+        ->imageEditorAspectRatios([
+            <% for(let ratio of inputFormData.imageEditorAspectRatios) { %>
+                <% ratio = ratio == 'null' ? ratio : `'${ratio}'` %>
+                <$ ratio $>,
+            <% } %>
+        ])
+    <% } %>
+    <# --- #>
+    <% if([0, 1, 2, 3].includes(inputFormData.imageEditorMode)) { %>
+        ->imageEditorMode(<$ inputFormData.imageEditorMode $>)
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.imageEditorViewportWidth) { %>
+        ->imageEditorViewportWidth('<$ inputFormData.imageEditorViewportWidth $>')
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.imageEditorViewportHeight) { %>
+        ->imageEditorViewportHeight('<$ inputFormData.imageEditorViewportHeight $>')
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.useCircleCropper) { %>
+        ->circleCropper()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.disablePreview) { %>
+        ->previewable(false)
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.isDownloadable) { %>
+        ->downloadable()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.canOpenFilesInNewTab) { %>
+        ->openable()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.canReorderFiles) { %>
+        ->reorderable()
+        ->appendFiles()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.disableDeleteButton) { %>
+        ->deleteable(false)
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.rows && inputFormData.inputType === 'textarea') { %>
+        ->rows(<$ inputFormData.rows $>)
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.cols && inputFormData.inputType === 'textarea') { %>
+        ->cols(<$ inputFormData.cols $>)
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.isHsl) { %>
+        ->hsl()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.isRgb) { %>
+        ->rgb()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.isRgba) { %>
+        ->rgba()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.autosize && inputFormData.inputType === 'textarea') { %>
+        ->autosize()
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.exactLength && inputFormData.inputType === 'textarea') { %>
+        ->length(<$ inputFormData.exactLength $>)
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.toolbarButtons?.length) { %>
+        ->toolbarButtons([
+            <% for(let buttonName of inputFormData.toolbarButtons) { %>
+                '<$ buttonName $>',
+            <% } %>
+        ])
+    <% } %>
+    <# --- #>
+    <% if(inputFormData.disableToolbarButtons?.length) { %>
+        ->disableToolbarButtons([
+            <% for(let buttonName of inputFormData.disableToolbarButtons) { %>
+                '<$ buttonName $>',
+            <% } %>
+        ])
+    <% } %>,
+                                    

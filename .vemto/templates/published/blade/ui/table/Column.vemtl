@@ -1,0 +1,21 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+@props([
+    'forCrud' => false
+])
+
+@php
+$allClasses = [
+    'vtheme(table.head.col)' => true,
+    'vtheme(crud.table.body.col.extra)' => $forCrud,
+];
+
+$classes = join(' ', array_keys(array_filter($allClasses)));
+@endphp
+
+<td {!! $attributes->merge(['class' => 'vtheme(table.body.col)']) !!}>
+    {{ $slot }}
+</td>

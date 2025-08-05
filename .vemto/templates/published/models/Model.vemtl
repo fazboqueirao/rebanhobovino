@@ -1,0 +1,426 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ model = Model ] #>
+<# DATA:RENDERABLE [ renderable = model/ModelRenderable(model) ] #>
+<####>
+
+<####>
+<# TEMPLATE IMPORTS #>
+<% const camelCase = this.require('camelCase') %>
+<####>
+
+namespace App\Models;
+
+// hook:BEFORE_IMPORTS
+<% if(this.model.hasParentClass()) { %>
+use <$ this.model.getParentClass() $>;
+<% } %>
+<# Traits #>
+<% if(this.model.hasTraits()) { %>
+    <% for(let modelTrait of this.model.getTraits()) { %>
+    use <$ modelTrait $>;
+    <% } %>
+<% } %>
+<# Interfaces #>
+<% if(this.model.hasInterfaces()) { %>
+    <% for(let modelInterface of this.model.getInterfaces()) { %>
+    use <$ modelInterface $>;
+    <% } %>
+<% } %>
+<# Other imports #>
+<% if(this.model.hasOtherImports()) { %>
+    <% for(let modelImport of this.model.getOtherImports()) { %>
+        <% if(this.model.contentNotPresentInSomeHook(modelImport)) { %>
+        use <$ modelImport $>;
+        <% } %>
+    <% } %>
+<% } %>
+<# --- #>
+<% if(this.model.hasSoftDeletes) { %>
+use Illuminate\Database\Eloquent\SoftDeletes;
+<% } %>
+// hook:IMPORTS
+
+class <$ this.model?.name || 'UnknownModelName' $> 
+<# Extends parent class #>
+<% if(this.model.hasParentClass()) { %>
+extends <$ this.model.getImportAlias(this.model.parentClass) $> 
+<% } %>
+<# Implements interfaces #>
+<% if(this.model.hasInterfaces()) { %>
+implements
+<% const interfaces = this.model.getInterfaces() %>
+<% for(let modelInterface of interfaces) { %>
+<% const isLast = interfaces.indexOf(modelInterface) === interfaces.length - 1 %>
+<$ this.model.getImportAlias(modelInterface) $><% if(!isLast) { %>,<% } %>
+<% } %>
+<% } %>
+{
+    <# Model traits #>
+    <% if(this.model.hasTraits()) { %>
+    <% for(let modelTrait of this.model.getTraits()) { %>
+    use <$ this.model.getImportAlias(modelTrait) $>;
+    <% } %>
+    <% } %>
+    <% if(this.model.hasSoftDeletes) { %>
+    use SoftDeletes;
+    <% } %>
+    // hook:TRAITS
+
+    // hook:BEFORE_VARIABLES
+
+    <% if(this.model.hasUnusualPrimaryKeyName()) { %>
+    /**
+     * The primary key associated with the table.
+     *
+     * @var string
+     */
+    protected $primaryKey = '<$ this.model.getPrimaryKeyName() $>';
+    <% } %>
+
+    <% if(!this.model.isPrimaryKeyAutoIncrement()) { %>
+    /**
+     * Indicates if the model's ID is auto-incrementing.
+     *
+     * @var bool
+     */
+    public $incrementing = false;
+
+    /**
+     * The data type of the primary key ID.
+     *
+     * @var string
+     */
+    protected $keyType = 'string';
+    <% } %>
+
+    <% if(this.model.tableNameIsDifferentFromDefault()) { %>
+    protected $table = '<$ this.model.table.name $>';
+    <% } %>
+
+    <% if(!this.model.hasTimestamps) { %>
+    public $timestamps = false;
+    <% } %>
+
+    <% if(this.model.hasGuarded) { %>
+    <% if(this.model.attributesComments) { %>
+    /**
+     * The attributes that aren't mass assignable.
+     *
+     * @var array<int, string>
+     */
+    <% } %>
+    protected $guarded = [
+        <% for(let column of this.model.guardedColumns) { %>
+        '<$ column.name $>',
+        <% } %>
+    ];
+    <% } %>
+
+    <% if(this.model.hasFillable) { %>
+    <% if(this.model.attributesComments) { %>
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    <% } %>
+    protected $fillable = [
+        <% for(let column of this.model.fillableColumns) { %>
+        '<$ column.name $>',
+        <% } %>
+    ];
+    <% } %>
+
+    <% if(this.model.hiddenColumns.length) { %>
+        <###>
+        <% if(this.model.attributesComments) { %>
+        /**
+        * The attributes that should be hidden for serialization.
+        *
+        * @var array<int, string>
+        */
+        <% } %>
+    protected $hidden = [
+        <% for(let column of this.model.hiddenColumns) { %>
+        '<$ column.name $>',
+        <% } %>
+    ];
+    <% } %>
+
+    <% if(this.model.appends.length) { %>
+        <###>
+        <% if(this.model.attributesComments) { %>
+        /**
+        * The accessors to append to the model's array form.
+        *
+        * @var array<int, string>
+        */
+        <% } %>
+    protected $appends = [
+        <% for(let column of this.model.appends) { %>
+        '<$ column $>',
+        <% } %>
+    ];
+    <% } %>
+
+    <% if(this.model.datesColumns.length) { %>
+    <% if(this.model.attributesComments) { %>
+    /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array<int, string>
+     */
+    <% } %>
+    protected $dates = [
+        <% for(let column of this.model.datesColumns) { %>
+        '<$ column.name $>',
+        <% } %>
+    ];
+    <% } %>
+
+    <% if(this.model.castsColumns.length && this.project.laravelVersionLessThan('11.0')) { %>
+        <###>
+        <% if(this.model.attributesComments) { %>
+        /**
+        * The attributes that should be cast.
+        *
+        * @var array<string, string>
+        */
+        <% } %>
+        protected $casts = [
+            <% for(let column of this.model.castsColumns) { %>
+                <% const pivot = this.model.relation('castsColumns').getPivotItem(column) %>
+                <###>
+                '<$ column.name $>' => '<$ pivot.type $>',
+            <% } %>
+        ];
+    <% } %>
+    // hook:AFTER_VARIABLES
+
+    <% if(this.model.castsColumns.length && this.project.laravelVersionGreaterThanOrEqualTo('11.0')) { %>
+        <###>
+        <% if(this.model.attributesComments) { %>
+        /**
+        * Get the attributes that should be cast.
+        *
+        * @return array<string, string>
+        */
+        <% } %>
+        protected function casts(): array
+        {
+            return [
+                <% for(let column of this.model.castsColumns) { %>
+                    <% const pivot = this.model.relation('castsColumns').getPivotItem(column) %>
+                    <###>
+                    '<$ column.name $>' => '<$ pivot.type $>',
+                <% } %>
+            ];
+        }
+    <% } %>
+
+    // hook:BEFORE_METHODS
+    <% if(this.model.getValidOwnRelationships().length) { %>
+        <# Relationships #>
+        <% for (let relationship of this.model.getValidOwnRelationships()) { %>
+            <# Belongs To #>
+            <% if(relationship.type == "BelongsTo") { %>
+            <% if(this.model.methodsComments) { %>
+            /**
+             * Get the <$ relationship.name $>.
+             *
+             * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+             */
+            <% } %>
+            public function <$ relationship.name $>() 
+            {
+                return $this->belongsTo(<$ relationship.relatedModel.name $>::class
+                <# Check if foreign key or parent key are different #>
+                <up if(relationship.hasDifferentForeignOrParentKey()) { up>
+                , '<$ relationship.foreignKeyName $>'
+                <up } up>
+                <# --- #>
+                <up if(relationship.hasDifferentParentKey()) { up>
+                , '<$ relationship.parentKey.name $>'
+                <up } up>);
+            }
+
+            <% } %>
+            <# Has Many #>
+            <% if(relationship.type == "HasMany") { %>
+            <% if(this.model.methodsComments) { %>
+            /**
+             * Get all of the <$ relationship.name $>.
+             *
+             * @return \Illuminate\Database\Eloquent\Relations\HasMany
+             */
+            <% } %>
+            public function <$ relationship.name $>() 
+            {
+                return $this->hasMany(<$ relationship.relatedModel.name $>::class
+                <# Check if foreign key or parent key are different #>
+                <up if(relationship.hasDifferentForeignOrParentKey()) { up>
+                , '<$ relationship.foreignKeyName $>'
+                <up } up>
+                <# --- #>
+                <up if(relationship.hasDifferentParentKey()) { up>
+                , '<$ relationship.parentKey.name $>'
+                <up } up>);
+            }
+
+            <% } %>
+            <# Has One #>
+            <% if(relationship.type == "HasOne") { %>
+            <% if(this.model.methodsComments) { %>
+            /**
+             * Get the <$ relationship.name $>.
+             *
+             * @return \Illuminate\Database\Eloquent\Relations\HasOne
+             */
+            <% } %>
+            public function <$ relationship.name $>() 
+            {
+                return $this->hasOne(<$ relationship.relatedModel.name $>::class
+                <# Check if foreign key or parent key are different #>
+                <up if(relationship.hasDifferentForeignOrParentKey()) { up>
+                , '<$ relationship.foreignKeyName $>'
+                <up } up>
+                <# --- #>
+                <up if(relationship.hasDifferentParentKey()) { up>
+                , '<$ relationship.parentKey.name $>'
+                <up } up>);
+            }
+
+            <% } %>
+            <# Many To Many #>
+            <% if(relationship.isManyToMany()) { %>
+                <% if(this.model.methodsComments) { %>
+                /**
+                * Get the <$ relationship.name $>.
+                *
+                * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+                */
+                <% } %>
+                public function <$ relationship.name $>() 
+                {
+                    return $this->belongsToMany(<$ relationship.relatedModel.name $>::class
+                    <# Needs to add the pivot table if localKey or foreignKey are not default #>
+                    <up if(relationship.needsToAddPivotToModelTemplate()) { up>
+                    , '<$ relationship.pivot.name $>'
+                    <up } up>
+                    <# --- #>
+                    <up if(relationship.hasDifferentForeignOrRelatedPivotKeys()) { up>
+                    , '<$ relationship.foreignPivotKey.name $>'
+                    <up } up>
+                    <# --- #>
+                    <up if(relationship.hasDifferentRelatedPivot()) { up>
+                    , '<$ relationship.relatedPivotKey.name $>'
+                    <up } up>)
+                    <# --- #>
+                    <% if(relationship.withPivotColumns) { %>
+                        ->withPivot(
+                        <###>
+                        <% for(let columnName of relationship.includedPivotColumns) { %>
+                            '<$ columnName $>', 
+                        <% } %>
+                        )
+                    <% } %>;
+                }
+
+            <% } %>
+            <# Morphs #>
+            <% if(relationship.isMorph()) { %>
+                <% if(this.model.methodsComments) { %>
+                /**
+                * Get the <$ relationship.name $>.
+                *
+                * @return \Illuminate\Database\Eloquent\Relations\MorphTo
+                */
+                <% } %>
+                public function <$ relationship.name $>() 
+                {
+                    return $this-><$ relationship.getTypeCamelCase() $>(<$ relationship.relatedModel.name $>::class, '<$ relationship.morphToName $>')
+                        <% if(relationship.isManyToManyMorph() && relationship.withPivotColumns) { %>
+                            <# --- #>
+                            ->withPivot(
+                            <###>
+                            <% for(let columnName of relationship.includedPivotColumns) { %>
+                                '<$ columnName $>', 
+                            <% } %>
+                            )
+                        <% } %>;
+                }
+
+            <% } %>
+            <# Has Many Through #>
+            <% if(relationship.isThrough()) { %>
+                <% if(this.model.methodsComments) { %>
+                /**
+                * Get the <$ relationship.name $>.
+                *
+                * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+                */
+                <% } %>
+                public function <$ relationship.name $>() 
+                {
+                    return $this-><$ relationship.getTypeCamelCase() $>(<$ relationship.relatedModel.name $>::class, <$ relationship.through.name $>::class
+                    <up if(relationship.needsToAddFirstKeyNameToModelTemplate()) { up>
+                    , '<$ relationship.firstKeyName $>'
+                    <up } up>
+                    <up if(relationship.hasDifferentSecondKeyName()) { up>
+                    , '<$ relationship.secondKeyName $>'
+                    <up } up>);
+                }
+
+            <% } %>
+        <% } %>
+    <% } %>
+    
+    <% if(this.model.relatedRelationships.length) { %>
+        <# Basic Morph Inverse Relationships #>
+        <% for(let relationship of this.model.getCommonMorphInverseRelationships()) { %>
+            <% if(this.model.methodsComments) { %>
+            /**
+            * Get the <$ relationship.name $>.
+            *
+            * @return \Illuminate\Database\Eloquent\Relations\<$ relationship.type $>
+            */
+            <% } %>
+            public function <$ relationship.morphToName $>() 
+            {
+                return $this->morphTo();
+            }
+
+        <% } %>
+
+        <# MorphedByMany Relationships #>
+        <% for(let relationship of this.model.getMorphedToManyRelatedRelationships()) { %>
+            <% if(this.model.methodsComments) { %>
+            /**
+            * Get the <$ relationship.name $>.
+            *
+            * @return \Illuminate\Database\Eloquent\Relations\MorphToMany
+            */
+            <% } %>
+            public function <$ camelCase(relationship.model.plural) $>() 
+            {
+                return $this->morphedByMany(<$ relationship.model.name $>::class, '<$ relationship.morphToName $>');
+            }
+
+        <% } %>
+    <% } %>
+
+    <% if(this.model.hasMethods()) { %>
+        <# Methods #>
+        <% for(let method of this.model.getMethods()) { %>
+            <% if(this.model.methodNotPresentInSomeHook(method)) { %>
+                <$ method.content $>
+            <% } %>
+        <% } %>
+    <% } %>
+
+    // hook:AFTER_METHODS
+}

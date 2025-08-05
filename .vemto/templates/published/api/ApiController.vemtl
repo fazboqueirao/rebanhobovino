@@ -1,0 +1,167 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:RENDERABLE [ renderable = crud/controllers/ApiControllerRenderable(crud) ] #>
+<####>
+
+<# TEMPLATE VARIABLES #>
+<% const pascalCase = this.require('pascalCase') %>
+<% const camelCase = this.require('camelCase') %>
+<% const modelNamePascalCase = pascalCase(this.crud.model.name) %>
+<% const modelNameCamelCase = camelCase(this.crud.model.name) %>
+<% const modelPluralCamelCase = camelCase(this.crud.model.plural) %>
+<% const controllerName = this.crud.model.getControllerName() %>
+<####>
+
+namespace App\Http\Controllers\Api;
+
+use Illuminate\Http\Response;
+use <$ this.crud.model.getClassString() $>;
+use App\Http\Resources\<$ modelNamePascalCase $>Resource;
+use App\Http\Resources\<$ modelNamePascalCase $>Collection;
+use App\Http\Requests\<$ modelNamePascalCase $>StoreRequest;
+use App\Http\Requests\<$ modelNamePascalCase $>UpdateRequest;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+<% if(this.crud.hasPasswordInputs()) { %>
+use Illuminate\Support\Facades\Hash;
+<% } %>
+<% if(this.crud.hasFileInputs()) { %>
+use Illuminate\Support\Facades\Storage;
+<% } %>
+<% if(this.crud.model.table.hasUniqueColumns()) { %>
+use Illuminate\Validation\Rule;
+<% } %>
+
+class <$ controllerName $> extends Controller
+{
+    public function index(Request $request): <$ modelNamePascalCase $>Collection
+    {
+        $search = $request->get('search', '');
+
+        $<$ modelPluralCamelCase $> = $this->getSearchQuery($search)
+            ->latest(<% if(!this.crud.model.hasTimestampsColumns()) { %>'<$ this.crud.model.getPrimaryKeyName() $>'<% } %>)
+            ->paginate();
+
+        return new <$ modelNamePascalCase $>Collection($<$ modelPluralCamelCase $>);
+    }
+
+    public function store(<$ modelNamePascalCase $>StoreRequest $request): <$ modelNamePascalCase $>Resource
+    {
+        $validated = $request->validated();
+        
+        <% if(this.crud.hasPasswordInputs()) { %>
+            <###>
+            <% for(let input of this.crud.getPasswordInputs()) { %>
+                <% if(!input.isRequiredOnCreation()) { %>
+                    if(!empty($validated['<$ input.name $>'])) {
+                <% } %>
+                $validated['<$ input.name $>'] = Hash::make($validated['<$ input.name $>']);
+                <% if(!input.isRequiredOnCreation()) { %>
+                    }
+                <% } %>
+
+            <% } %>
+        <% } %>
+
+        <% if(this.crud.hasFileInputs()) { %>
+            <###>
+            <% for(let input of this.crud.getFileInputs()) { %>
+                if($request->hasFile('<$ input.name $>')) {
+                    $validated['<$ input.name $>'] = $request->file('<$ input.name $>')->store('public');
+                }
+                
+            <% } %>
+        <% } %>
+
+        <% if(this.crud.hasJsonInputs()) { %>
+            <###>
+            <% for(let input of this.crud.getJsonInputs()) { %>
+                $validated['<$ input.name $>'] = json_encode($validated['<$ input.name $>'], true);
+
+            <% } %>
+        <% } %>
+
+        $<$ modelNameCamelCase $> = <$ modelNamePascalCase $>::create($validated);
+
+        return new <$ modelNamePascalCase $>Resource($<$ modelNameCamelCase $>);
+    }
+
+    public function show(Request $request, <$ modelNamePascalCase $> $<$ modelNameCamelCase $>): <$ modelNamePascalCase $>Resource
+    {
+        return new <$ modelNamePascalCase $>Resource($<$ modelNameCamelCase $>);
+    }
+
+    public function update(<$ modelNamePascalCase $>UpdateRequest $request, <$ modelNamePascalCase $> $<$ modelNameCamelCase $>): <$ modelNamePascalCase $>Resource
+    {
+        $validated = $request->validated();
+
+        <% if(this.crud.hasPasswordInputs()) { %>
+            <###>
+            <% for(let input of this.crud.getPasswordInputs()) { %>
+                if(empty($validated['<$ input.name $>'])) {
+                    unset($validated['<$ input.name $>']);
+                } else {
+                    $validated['<$ input.name $>'] = Hash::make($validated['<$ input.name $>']);
+                }
+
+            <% } %>
+        <% } %>
+        
+        <% if(this.crud.hasFileInputs()) { %>
+            <###>
+            <% for(let input of this.crud.getFileInputs()) { %>
+            if($request->hasFile('<$ input.name $>')) {
+                if($<$ modelNameCamelCase $>-><$ input.name $>) {
+                    Storage::delete($<$ modelNameCamelCase $>-><$ input.name $>);
+                }
+
+                $validated['<$ input.name $>'] = $request->file('<$ input.name $>')->store('public');
+            }
+
+            <% } %>
+        <% } %>
+
+        <% if(this.crud.hasJsonInputs()) { %>
+            <###>
+            <% for(let input of this.crud.getJsonInputs()) { %>
+            $validated['<$ input.name $>'] = json_decode($validated['<$ input.name $>'], true);
+            
+            <% } %>
+        <% } %>
+
+        $<$ modelNameCamelCase $>->update($validated);
+
+        return new <$ modelNamePascalCase $>Resource($<$ modelNameCamelCase $>);
+    }
+
+    public function destroy(Request $request, <$ modelNamePascalCase $> $<$ modelNameCamelCase $>): Response
+    {
+        <% if(this.crud.hasFileInputs()) { %>
+            <###>
+            <% for(let input of this.crud.getFileInputs()) { %>
+                if($<$ modelNameCamelCase $>-><$ input.name $>) {
+                    Storage::delete($<$ modelNameCamelCase $>-><$ input.name $>);
+                }
+
+            <% } %>
+        <% } %>
+        
+        $<$ modelNameCamelCase $>->delete();
+
+        return response()->noContent();
+    }
+
+    public function getSearchQuery(string $search)
+    {
+        <% if(this.crud.hasDefaultSearchColumn()) { %>
+        return <$ this.crud.model.name $>::query()
+            ->where('<$ this.crud.defaultSearchColumn.name $>', 'like', "%{$search}%");
+        <% } else { %>
+        return <$ this.crud.model.name $>::query();
+        <% } %>
+    }
+}

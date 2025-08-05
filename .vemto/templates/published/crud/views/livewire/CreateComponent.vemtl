@@ -1,0 +1,80 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:RENDERABLE [ renderable = crud/views/livewire/LivewireCreateComponentRenderable(crud) ] #>
+<####>
+
+
+<% const crud = this.crud %>
+<% const modelName = crud.model.name %>
+<% const camelCase = this.require('camelCase') %>
+<% const pascalCase = this.require('pascalCase') %>
+<% const paramCase = this.require('paramCase') %>
+<% const itemVarName = camelCase(crud.settings.itemName) %>
+<% const collectionVarName = camelCase(crud.settings.collectionName) %>
+<% const viewsFolderName = `${crud.section.getFolderName()}.${paramCase(crud.plural)}` %>
+
+namespace <$ crud.livewireNamespace $>;
+ 
+use Livewire\Component;
+use Livewire\WithFileUploads;
+use Illuminate\Support\Collection;
+use <$ crud.livewireFormsNamespace $>\CreateForm;
+<% for (let input of crud.getBelongsToInputs()) { %>
+use App\Models\<$ input.getRelatedModelName() $>;
+<% } %>
+// hook:IMPORTS
+ 
+class <$ this.filenameWithoutExtension $> extends Component
+{
+    use WithFileUploads;
+    // hook:TRAITS
+
+    // hook:BEFORE_VARIABLES
+    public CreateForm $form;
+    <# --- #>
+    <% for (let input of crud.getBelongsToInputs()) { %>
+    <% const model = input.getRelatedModel() %>
+    public Collection $<$ camelCase(model.plural) $>;
+    <% } %>
+    // hook:AFTER_VARIABLES
+
+    public function mount()
+    {
+        // hook:BEFORE_MOUNT
+        <% for (let input of crud.getBelongsToInputs()) { %>
+        <# --- #>
+        <% const model = input.getRelatedModel() %>
+        <% const label = model.table.getLabelColumnName() %>
+        <% const primaryKey = model.table.getPrimaryKeyName() %>
+        <# --- #>
+        $this-><$ camelCase(model.plural) $> = <$ model.name $>::pluck('<$ label $>', '<$ primaryKey $>');
+        <% } %>
+        // hook:AFTER_MOUNT
+    }
+
+    public function save()
+    {
+        $this->authorize('create', <$ modelName $>::class);
+
+        // hook:BEFORE_SAVE
+        $this->validate();
+        // hook:AFTER_VALIDATE
+
+        $<$ itemVarName $> = $this->form->save();
+
+        return redirect()->route('<$ crud.getRouteNameByTag('edit') $>', $<$ itemVarName $>);
+    }
+
+    public function render()
+    {
+        // hook:BEFORE_RENDER
+        return view('livewire.<$ viewsFolderName $>.create', [
+            // hook:RENDER_PARAMETERS
+        ]);
+    }
+    // hook:METHODS
+}

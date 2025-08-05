@@ -1,0 +1,81 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:MODEL [ relationship = Relationship ] #>
+<# DATA:RENDERABLE [ renderable = crud/api/ApiBelongsToManyTestRenderable(crud, relationship) ] #>
+<####>
+
+<# TEMPLATE VARIABLES #>
+<% const snakeCase = this.require('snakeCase') %>
+<% const camelCase = this.require('camelCase') %>
+<% const paramCase = this.require('paramCase') %>
+<% const pascalCase = this.require('pascalCase') %>
+<% const modelName = this.crud.model.name %>
+<% const relModelName = this.relationship.relatedModel.name %>
+<% const relModelPlural = this.relationship.relatedModel.plural %>
+<% const relModelNameCamelCase = camelCase(relModelName) %>
+<% const modelNameCamelCase = camelCase(modelName) %>
+<% const modelNameSnakeCase = snakeCase(modelName) %>
+<% const modelPluralParamCase = paramCase(this.crud.model.plural) %>
+<% const authModel = this.project.getAuthModel() %>
+<####>
+
+use <$ authModel.getClassString() $>;
+use <$ this.crud.model.getClassString() $>;
+use <$ this.relationship.relatedModel.getClassString() $>;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
+
+uses(RefreshDatabase::class, WithFaker::class);
+
+beforeEach(function () {
+    $this->withoutExceptionHandling();
+
+    <% if(authModel !== null) { %>
+        $user = <$ authModel.name $>::factory()->create(['email' => 'admin@admin.com']);
+
+        Sanctum::actingAs($user, [], 'web');
+    <% } %>
+});
+
+test('it gets <$ modelNameSnakeCase $> <$ snakeCase(relModelPlural) $>', function() {
+    $<$ modelNameCamelCase $> = <$ modelName $>::factory()->create();
+    $<$ relModelNameCamelCase $> = <$ relModelName $>::factory()->create();
+
+    $<$ modelNameCamelCase $>-><$ this.relationship.name $>()->attach($<$ relModelNameCamelCase $>);
+
+    $response = $this->getJson(route('api.<$ modelPluralParamCase $>.<$ paramCase(relModelPlural) $>.index', $<$ modelNameCamelCase $>));
+
+    $response->assertOk()
+        ->assertSee($<$ relModelNameCamelCase $>-><$ this.relationship.relatedModel.table.getLabelColumnName() $>);
+});
+
+test('it can attach <$ snakeCase(relModelPlural) $> to <$ modelNameSnakeCase $>', function () {
+    $<$ modelNameCamelCase $> = <$ modelName $>::factory()->create();
+    $<$ relModelNameCamelCase $> = <$ relModelName $>::factory()->create();
+
+    $response = $this->postJson(route('api.<$ modelPluralParamCase $>.<$ paramCase(relModelPlural) $>.store', [$<$ modelNameCamelCase $>, $<$ relModelNameCamelCase $>]));
+
+    $response->assertNoContent();
+
+    $this->assertTrue(
+        $<$ modelNameCamelCase $>-><$ this.relationship.name $>()->where('<$ this.relationship.relatedModel.table.name $>.<$ this.relationship.relatedModel.getPrimaryKeyName() $>', $<$ relModelNameCamelCase $>-><$ this.relationship.relatedModel.getPrimaryKeyName() $>)->exists()
+    );
+});
+
+test('it can detach <$ snakeCase(relModelPlural) $> from <$ modelNameSnakeCase $>', function() {
+    $<$ modelNameCamelCase $> = <$ modelName $>::factory()->create();
+    $<$ relModelNameCamelCase $> = <$ relModelName $>::factory()->create();
+
+    $response = $this->deleteJson(route('api.<$ modelPluralParamCase $>.<$ paramCase(relModelPlural) $>.store', [$<$ modelNameCamelCase $>, $<$ relModelNameCamelCase $>]));
+
+    $response->assertNoContent();
+
+    $this->assertFalse(
+        $<$ modelNameCamelCase $>-><$ this.relationship.name $>()->where('<$ this.relationship.relatedModel.table.name $>.<$ this.relationship.relatedModel.getPrimaryKeyName() $>', $<$ relModelNameCamelCase $>-><$ this.relationship.relatedModel.getPrimaryKeyName() $>)->exists()
+    );
+});

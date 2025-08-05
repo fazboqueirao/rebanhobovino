@@ -1,0 +1,49 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ model = Model ] #>
+<# DATA:RENDERABLE [ renderable = crud/controllers/ApiAuthControllerRenderable(model) ] #>
+<####>
+
+<# TEMPLATE VARIABLES #>
+<% const snakeCase = this.require('snakeCase') %>
+<% const camelCase = this.require('camelCase') %>
+<% const paramCase = this.require('paramCase') %>
+<% const pascalCase = this.require('pascalCase') %>
+<% let modelVariableName = camelCase(this.model.name) %>
+<####>
+
+namespace App\Http\Controllers\Api;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use App\Http\Controllers\Controller;
+use Illuminate\Validation\ValidationException;
+use <$ this.model.getClassString() $>;
+
+class AuthController extends Controller
+{
+    public function login(Request $request): JsonResponse
+    {
+        $credentials = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
+
+        if (!auth()->attempt($credentials)) {
+            throw ValidationException::withMessages([
+                'email' => [trans('auth.failed')],
+            ]);
+        }
+
+        $<$ modelVariableName $> = <$ this.model.name $>::whereEmail($request->email)->firstOrFail();
+        
+        $token = $<$ modelVariableName $>->createToken('auth-token');
+
+        return response()->json([
+            'token' => $token->plainTextToken,
+        ]);
+    }
+}

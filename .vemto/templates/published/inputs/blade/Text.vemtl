@@ -1,0 +1,24 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ input = Input ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<% const input = this.input %>
+<% const crud = input.crud %>
+<% const camelCase = this.require("camelCase") %>
+
+<div class="vtheme(crud.form.input.group)">
+    <x-ui.label for="<$ input.name $>"><$ this.helpers.lang(input.label) $></x-ui.label>
+    <x-ui.input.text
+        class="vtheme(crud.form.input.extra)"
+        wire:model="form.<$ input.column.name $>"
+        name="<$ input.name $>"
+        id="<$ input.name $>"
+        placeholder="<$ this.helpers.lang(input.placeholder) $>"
+        <$ input.min ? `min="${input.min}"` : '' $>
+        <$ input.max ? `max="${input.max}"` : '' $>
+    />
+    <x-ui.input.error for="form.<$ input.column.name $>" />
+</div>

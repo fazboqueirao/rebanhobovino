@@ -1,0 +1,43 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ table = Table ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<# TEMPLATE VARIABLES #>
+<# const pascalCase = TemplateRequire('pascalCase') #>
+<####>
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+<% if (this.project.laravelVersionGreaterThanOrEqualTo('9')) { %>
+return new class extends Migration
+<% } else { %>
+class <$ this.table.getCreationMigrationClassName() $> extends Migration
+<% } %>
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::dropIfExists('<$ this.table.schemaState.name $>');
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        <import template="migrations/CreationSchema.vemtl">
+    }
+}<% if (this.project.laravelVersionGreaterThanOrEqualTo('9')) { %>;<% } %>

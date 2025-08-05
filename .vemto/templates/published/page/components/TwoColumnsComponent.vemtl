@@ -1,0 +1,11 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:JSON [ component = {"settings": {}} ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<div class="columns-1 lg:columns-2">
+    <div></div>
+    <div></div>
+</div>

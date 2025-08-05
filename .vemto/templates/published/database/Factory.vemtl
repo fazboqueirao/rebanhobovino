@@ -1,0 +1,117 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ model = Model ] #>
+<# DATA:RENDERABLE [ renderable = model/FactoryRenderable(model) ] #>
+<####>
+
+<# TEMPLATE IMPORTS #>
+<% const pascalCase = this.require('pascalCase') %>
+<####>
+<# TEMPLATE VARIABLES #>
+<% const model = this.model %>
+<####>
+
+namespace Database\Factories;
+
+use <$ model.class $>;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
+// hook:IMPORTS
+
+class <$ this.filenameWithoutExtension $> extends Factory
+{
+    // hook:TRAITS
+    /**
+     * The name of the factory's corresponding model.
+     *
+     * @var string
+     */
+    protected $model = <$ model.name $>::class;
+
+    // hook:VARIABLES
+
+    /**
+     * Define the model's default state.
+     *
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        // hook:BEFORE_DEFINITION
+        return [
+            <% for (let column of model.table.getColumns()) { %>
+                <% let columnIsKey = column.isPrimaryKey() || column.isForeignKey() %>
+                <% let canAddColumn = !column.isDefaultLaravelTimestamp() && !columnIsKey %>
+                <# --- #>
+                <% if(canAddColumn && column.hasFaker()) { %>
+                '<$ column.name $>' => <$ column.getFakerForTemplate() $>,
+                <% } %>
+            <% } %>
+            <# --- #>
+            <% const modelBelongsToRelations = this.model.getBelongsToRelations() %>
+            <# --- #>
+            <% if(modelBelongsToRelations.length) { %>
+                <# --- #>
+                <% for(let relation of modelBelongsToRelations) { %>
+                    <# --- #>
+                        <% if(relation.relatedModelId != this.model.id) { %>
+                            <# --- #>
+                            <% if(this.model.isObligatoryParentOfAnotherEntity(relation.relatedModel)) { %>
+                                // Circular relation... please check the relationship
+                                //'<$ relation.foreignKey.name $>' => \<$ relation.relatedModel.class $>::factory(), 
+                            <% } else { %>
+                                '<$ relation.foreignKey.name $>' => \<$ relation.relatedModel.class $>::factory(),
+                            <% } %>
+                        <% } else { %>
+                            '<$ relation.foreignKey.name $>' => function () {
+                                return \<$ relation.relatedModel.class $>::factory()
+                                    ->create([
+                                        <% let foreignsNames = this.model.getSelfRelationshipsForeignsNames() %>
+                                        <# --- #>
+                                        <% for(let foreignName of foreignsNames) { %>
+                                            '<$ foreignName $>' => null,
+                                        <% } %>
+                                    ])
+                                    -><$ relation.relatedModel.table.getPrimaryKeyName() $>;
+                            },
+                        <% } %>
+                <% } %>
+            <% } %>
+            <# Polymorphic relationships faker #>
+            <% const commonInverseMorphs = this.model.getCommonMorphInverseRelationships() %>
+            <% if(commonInverseMorphs.length) { %>
+                <# --- #>
+                <% for(let relation of commonInverseMorphs) { %>
+                    '<$ relation.morphToName $>_type' => fake()->randomElement([
+                        <% for (let relatedRelation of this.model.getCommonMorphRelatedRelationships()) { %>
+                            <# --- #>
+                            <% if(relatedRelation.morphToName == relation.morphToName) { %>
+                                \<$ relatedRelation.model.class $>::class,
+                            <% } %>
+                        <% } %>
+                    ]),
+                    '<$ relation.morphToName $>_id' => \<$ relation.model.class $>::factory(),
+                <% } %>
+            <% } %>
+        ];
+    }
+
+    <% if(this.model.isAuthModel()) { %>
+        /**
+        * Indicate that the model's email address should be unverified.
+        */
+        public function unverified(): Factory
+        {
+            return $this->state(function (array $attributes) {
+                return [
+                    'email_verified_at' => null,
+                ];
+            });
+        }
+    <% } %>
+    
+    // hook:AFTER_DEFINITION
+}

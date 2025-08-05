@@ -1,0 +1,21 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+@props([
+    'href' => false,
+    'active' => false,
+])
+
+<li class="vtheme(ui.breadcrumbs.list.item)">
+    <a 
+        @if($href)
+            wire:navigate
+            href="{{ $href }}"
+        @endif
+        class="vtheme(ui.breadcrumbs.list.item.link) {{ $active ? 'active-breadcrumb' : '' }}"
+    >
+        {{ $slot }}
+    </a>
+</li>

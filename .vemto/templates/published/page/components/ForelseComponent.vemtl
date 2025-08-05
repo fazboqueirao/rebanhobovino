@@ -1,0 +1,19 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:JSON [ component = {"settings": {}} ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+ 
+<# Template Variables #>
+<% const ComponentRenderer = this.require("ComponentRenderer") %>
+<# - #>
+@forelse(<$ this.component.settings.content $>)
+<% for (const component of this.component.getNestedComponents('foreachComponents')) { %>
+    <$ await ComponentRenderer.render(component) $>
+<% } %>
+@empty
+<% for (const component of this.component.getNestedComponents('emptyComponents')) { %>
+    <$ await ComponentRenderer.render(component) $>
+<% } %>
+@endforelse

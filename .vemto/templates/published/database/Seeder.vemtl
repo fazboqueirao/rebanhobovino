@@ -1,0 +1,36 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ model = Model ] #>
+<# DATA:RENDERABLE [ renderable = model/SeederRenderable(model) ] #>
+<####>
+
+<# TEMPLATE VARIABLES #>
+<% const model = this.model %>
+<% const modelName = this.model.name %>
+<####>
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Seeder;
+use App\Models\<$ modelName $>;
+// hook:IMPORTS
+
+class <$ this.filenameWithoutExtension $> extends Seeder
+{
+    // hook:TRAITS
+
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        // hook:BEFORE_SEEDER_RUN
+        <$ modelName $>::factory()->count(<$ model.getSeederQuantity() $>)->create();
+        // hook:AFTER_SEEDER_RUN
+    }
+
+    // hook:METHODS
+}

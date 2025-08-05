@@ -1,0 +1,50 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ table = Table ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<# TEMPLATE VARIABLES #>
+<# const pascalCase = TemplateRequire('pascalCase') #>
+<####>
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+<% if (this.project.laravelVersionGreaterThanOrEqualTo('9')) { %>
+return new class extends Migration
+<% } else { %>
+class <$ this.table.getCreationMigrationClassName() $> extends Migration
+<% } %>
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::rename('<$ this.table.schemaState.name $>', '<$ this.table.name $>');
+        <% if(this.table.hasDirtyResources()) { %>
+        <import template="migrations/UpdaterSchema.vemtl">
+        <% } %>
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        <% if(this.table.hasDirtyResources()) { %>
+        <import template="migrations/UpdaterSchemaDown.vemtl">
+        <% } %>
+        Schema::rename('<$ this.table.name $>', '<$ this.table.schemaState.name $>');
+    }
+}<% if (this.project.laravelVersionGreaterThanOrEqualTo('9')) { %>;
+<% } %>

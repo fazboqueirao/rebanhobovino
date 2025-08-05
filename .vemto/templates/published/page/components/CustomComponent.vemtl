@@ -1,0 +1,8 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:JSON [ component = {"settings": {}} ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<$ this.component.settings.content $>

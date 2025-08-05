@@ -1,0 +1,20 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:JSON [ component = {"settings": {}} ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<# Template Variables #>
+<% const ComponentRenderer = this.require("ComponentRenderer") %>
+
+<# - #>
+<a wire:navigate target="<$ this.component.settings.target $>" href="<$ this.component.settings.href $>">
+    <% if (this.component.settings.mode === 'text') { %>
+    <$ this.component.settings.content $>
+    <% } else { %>
+        <% for (const component of this.component.getNestedComponents('nestedComponents')) { %>
+            <$ await ComponentRenderer.render(component) $>
+        <% } %>
+    <% } %>
+</a>

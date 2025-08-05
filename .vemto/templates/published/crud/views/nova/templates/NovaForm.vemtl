@@ -1,0 +1,329 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ input = Input ] #>
+<# DATA:EXPOSE_LOCAL [ exposed_variables = input ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<% const inputSettings = input.novaSettings %>
+<% const novaInputTypeIs = (type) => input.novaSettings.inputType === type %>
+<% const inputLabel = input.isBelongsTo() ? `'${capitalCase(input.relationship.name)}'` : this.helpers.toTranslatableFormat(input.label) %>
+<% const inputAttribute = input.isBelongsTo() ? input.relationship.name : input.name %>
+
+<$ pascalCase(inputSettings.inputType) $>::make(<$ inputLabel $>, '<$ inputAttribute $>')
+    <% if(!input.showOnCreation) { %>
+        ->hideWhenCreating()
+    <% } %>
+    <# --- #>
+    <% if(!input.showOnUpdate) { %>
+        ->hideWhenUpdating()
+    <% } %>
+    <# --- #>
+    <% if(!input.showOnDetails) { %>
+        ->hideFromDetail()
+    <% } %>
+    <# --- #>
+    <% if(!input.showOnIndex) { %>
+        ->hideFromIndex()
+    <% } %>
+    <# --- #>
+    <% if(input.creationRules.length) { %>
+        ->creationRules(<$ input.getCreationRulesForNova() $>)
+    <% } %>
+    <# --- #>
+    <% if(input.updateRules.length) { %>
+        ->updateRules(<$ input.getUpdateRulesForNova() $>)
+    <% } %>
+    <# --- #>
+    <% if(input.novaSettings.helperText) { %>
+        ->help('<$ input.novaSettings.helperText $>')
+    <% } %>
+    <# --- #>
+    <% if(input.novaSettings.fullWidth) { %>
+        ->fullWidth()
+    <% } %>
+    <# --- #>
+    <% if(input.isCommon() && input.novaSettings.filterable) { %>
+        ->filterable()
+    <% } %>
+    <# --- #>
+    <% if(input.isCommon() && input.novaSettings.sortable) { %>
+        ->sortable()
+    <% } %>
+    <# --- #>
+    <% if(input.defaultValue) { %>
+        ->default('<$ input.defaultValue $>')
+    <% } %>
+    <# --- #>
+    <% if(input.novaSettings.readonly) { %>
+        ->readonly()
+    <% } %>
+    <# --- #>
+    <% if(input.isSelect() && (novaInputTypeIs('select') || novaInputTypeIs('multi-select') || novaInputTypeIs('boolean-group'))) { %>
+        ->options([
+            <% for(let option of input.items) { %>
+                '<$ option.value $>' => '<$ option.label $>',
+            <% } %>
+        ])
+    <% } %>
+    <# --- #>
+    <% if(input.isSelect() && novaInputTypeIs('badge')) { %>
+        <###>
+        <% if(input.novaSettings.label && !input.novaSettings.labels?.length) { %>
+            ->label('<$ input.novaSettings.label $>')
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.labels?.length) { %>
+            ->labels([
+                <% for(let label of input.novaSettings.labels) { %>
+                    '<$ label.value $>' => '<$ label.label $>',
+                <% } %>
+            ])
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.withIcons) { %>
+            ->withIcons()
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.icons?.length) { %>
+            ->icons([
+                <% for(let icon of input.novaSettings.icons) { %>
+                    '<$ icon.value $>' => '<$ icon.icon $>',
+                <% } %>
+            ])
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.map?.length) { %>
+            ->map([
+                <% for(let map of input.novaSettings.map) { %>
+                    '<$ map.value $>' => '<$ map.label $>',
+                <% } %>
+            ])
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.types?.length) { %>
+            ->types([
+                <% for(let type of input.novaSettings.types) { %>
+                    '<$ type.value $>' => '<$ type.label $>',
+                <% } %>
+            ])
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.addTypes?.length) { %>
+            ->addTypes([
+                <% for(let type of input.novaSettings.addTypes) { %>
+                    '<$ type.value $>' => '<$ type.label $>',
+                <% } %>
+            ])
+        <% } %>
+    <% } %>
+    <# --- #>
+    <% if(input.isSelect() && input.novaSettings.displayUsingLabels) { %>
+        ->displayUsingLabels()
+    <% } %>
+    <# --- #>
+    <% if((input.isSelect() || input.isBelongsTo()) && input.novaSettings.searchable) { %>
+        ->searchable()
+    <% } %>
+    <# --- #>
+    <% if(novaInputTypeIs('audio') && input.novaSettings.preload) { %>
+        ->preload('<$ input.novaSettings.preload $>')
+    <% } %>
+    <# --- #>
+    <% if(novaInputTypeIs('avatar')) { %>
+        <###>
+        <% if(input.novaSettings.squared) { %>
+            ->squared()
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.rounded) { %>
+            ->rounded()
+        <% } %>
+    <% } %>
+    <# --- #>
+    <% if(novaInputTypeIs('boolean')) { %>
+        <###>
+        <% if(input.novaSettings.trueValue) { %>
+            <% const trueValue = input.novaSettings.trueValue === true ? input.novaSettings.trueValue : `'${input.novaSettings.trueValue}'` %>
+            <###>
+            ->trueValue(<$ trueValue $>)
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.falseValue) { %>
+            <% const falseValue = input.novaSettings.falseValue === true ? input.novaSettings.falseValue : `'${input.novaSettings.falseValue}'` %>
+            <###>
+            ->falseValue(<$ falseValue $>)
+        <% } %>
+    <% } %>
+    <# --- #>
+    <% if(novaInputTypeIs('boolean-group')) { %>
+        <###>
+        <% if(input.novaSettings.hideFalseValues) { %>
+            ->hideFalseValues()
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.hideTrueValues) { %>
+            ->hideTrueValues()
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.noValueText) { %>
+            ->noValueText('<$ input.novaSettings.noValueText $>')
+        <% } %>
+    <% } %>
+    <# --- #>
+    <% if(novaInputTypeIs('code')) { %>
+        <###>
+        <% if(input.novaSettings.isJson) { %>
+            ->json()
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.language) { %>
+            ->language('<$ input.novaSettings.language $>')
+        <% } %>
+    <% } %>
+    <# --- #>
+    <% if(novaInputTypeIs('currency')) { %>
+        <###>
+        <% if(input.novaSettings.currency) { %>
+            ->currency('<$ input.novaSettings.currency $>')
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.locale) { %>
+            ->locale('<$ input.novaSettings.locale $>')
+        <% } %>
+    <% } %>
+    <# --- #>
+    <% if(input.isTextarea()) { %>
+        <###>
+        <% if(novaInputTypeIs('textarea') && input.novaSettings.rows) { %>
+            ->rows(<$ input.novaSettings.rows $>)
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.alwaysShow) { %>
+            ->alwaysShow()
+        <% } %>
+        <# --- #>
+        <% if(novaInputTypeIs('markdown')) { %>
+            <###>
+            <% if(input.novaSettings.preset) { %>
+                ->preset('<$ input.novaSettings.preset $>')
+            <% } %>
+        <% } %>
+        <# --- #>
+        <% if(!novaInputTypeIs('textarea') && input.novaSettings.withFiles) { %>
+            ->withFiles('<$ input.novaSettings.withFiles $>')
+        <% } %>
+    <% } %>
+    <# --- #>
+    <% if(input.isNumber() || novaInputTypeIs('currency')) { %>
+        <###>
+        <% if(input.novaSettings.min) { %>
+            ->min(<$ input.novaSettings.min $>)
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.max) { %>
+            ->max(<$ input.novaSettings.max $>)
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.step) { %>
+            <% const stepValue = input.novaSettings.step === 'any' ? 'any' : input.novaSettings.step %>
+            <###>
+            ->step(<$ stepValue $>)
+        <% } %>
+    <% } %>
+    <# --- #>
+    <% if(novaInputTypeIs('slug')) { %>
+        <###>
+        <% if(input.novaSettings.from) { %>
+            ->from('<$ input.novaSettings.from $>')
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.separator) { %>
+            ->separator('<$ input.novaSettings.separator $>')
+        <% } %>
+    <% } %>
+    <# --- #>
+    <% if(novaInputTypeIs('text') || novaInputTypeIs('number')) { %>
+        <###>
+        <% if(input.novaSettings.suggestions?.length) { %>
+            ->suggestions([
+                <% for(let suggestion of input.novaSettings.suggestions) { %>
+                    '<$ suggestion.value $>',
+                <% } %>
+            ])
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.asHtml) { %>
+            ->asHtml()
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.copyable) { %>
+            ->copyable()
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.maxLength) { %>
+            ->maxlength(<$ input.novaSettings.maxLength $>)
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.enforceMaxLength) { %>
+            ->enforceMaxlength()
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.textAlign) { %>
+            ->textAlign('<$ input.novaSettings.textAlign $>')
+        <% } %>
+    <% } %>
+    <# --- #>
+    <% if(input.isFileOrImage()) { %>
+        <###>
+        <% if(input.novaSettings.disk) { %>
+            ->disk('<$ input.novaSettings.disk $>')
+        <% } %>
+        <# --- #>
+        <% if(novaInputTypeIs('file') && input.novaSettings.disableDownload) { %>
+            ->disableDownload()
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.storeOriginalName) { %>
+            ->storeOriginalName('<$ input.novaSettings.storeOriginalName $>')
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.storeSize) { %>
+            ->storeSize('<$ input.novaSettings.storeSize $>')
+        <% } %>
+        <# --- #>
+        <% if(!input.novaSettings.deletable) { %>
+            ->deletable(false)
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.prunable) { %>
+            ->prunable()
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.path) { %>
+            ->path('<$ input.novaSettings.path $>')
+        <% } %>
+        <# --- #>
+        <% if(input.novaSettings.acceptedTypes?.length) { %>
+            ->acceptedTypes([
+                <% for(let type of input.novaSettings.acceptedTypes) { %>
+                    '<$ type $>',
+                <% } %>
+            ])
+        <% } %>
+        <% if(novaInputTypeIs('image')) { %>
+            <###>
+            <% if(input.novaSettings.maxWidth) { %>
+                ->maxWidth(<$ input.novaSettings.maxWidth $>)
+            <% } %>
+            <# --- #>
+            <% if(input.novaSettings.indexWidth) { %>
+                ->indexWidth(<$ input.novaSettings.indexWidth $>)
+            <% } %>
+            <# --- #>
+            <% if(input.novaSettings.detailWidth) { %>
+                ->detailWidth(<$ input.novaSettings.detailWidth $>)
+            <% } %>
+        <% } %>
+    <% } %>,

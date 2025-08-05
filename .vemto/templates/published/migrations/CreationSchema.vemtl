@@ -1,0 +1,22 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ table = Table ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+Schema::create('<$ this.table.name $>', function (Blueprint $table) {
+    <# Table columns #>
+    <% for (let column of this.table.getValidColumns()) { %>
+        <% if (column.isDefaultLaravelPrimaryKey()) { %>
+            $table->id();
+        <% } else { %>
+        <import template="migrations/MigrationColumn.vemtl">
+        <% } %>
+    <% } %>
+    
+    <# Indexes #>
+    <% for (let index of this.table.getIndexes()) { %>
+        <import template="migrations/MigrationIndex.vemtl">
+    <% } %>
+});

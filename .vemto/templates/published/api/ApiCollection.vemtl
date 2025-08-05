@@ -1,0 +1,25 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ model = Model ] #>
+<# DATA:RENDERABLE [ renderable = crud/api/ApiCollectionRenderable(model) ] #>
+<####>
+
+
+namespace App\Http\Resources;
+
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\ResourceCollection;
+
+class <$ this.model.name $>Collection extends ResourceCollection
+{
+    /**
+     * Transform the resource collection into an array.
+     */
+    public function toArray(Request $request): array
+    {
+        return parent::toArray($request);
+    }
+}

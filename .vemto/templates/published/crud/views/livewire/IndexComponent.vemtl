@@ -1,0 +1,97 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:RENDERABLE [ renderable = crud/views/livewire/LivewireIndexComponentRenderable(crud) ] #>
+<####>
+
+
+<% const crud = this.crud %>
+<% const model = this.crud.model %>
+<% const modelName = model.name %>
+<% const camelCase = this.require('camelCase') %>
+<% const pascalCase = this.require('pascalCase') %>
+<% const paramCase = this.require('paramCase') %>
+<% const itemVarName = camelCase(crud.settings.itemName) %>
+<% const deletingItemVarName = `deleting${pascalCase(itemVarName)}` %>
+<% const collectionVarName = camelCase(crud.settings.collectionName) %>
+<% const viewsFolderName = `${crud.section.getFolderName()}.${paramCase(crud.plural)}` %>
+
+namespace <$ crud.livewireNamespace $>;
+ 
+use Livewire\Component;
+use Livewire\WithPagination;
+use App\Models\<$ modelName $>;
+
+class <$ this.filenameWithoutExtension $> extends Component
+{
+    use WithPagination;
+
+    public $search;
+    <% if(crud.hasDefaultSortColumn()) { %>
+    public $sortField = '<$ crud.defaultSortColumn.name $>';
+    <% } else { %>
+    public $sortField;
+    <% } %>
+    public $sortDirection = '<$ crud.defaultSortDirection $>';
+
+    public $queryString = ['search', 'sortField', 'sortDirection'];
+
+    public $confirmingDeletion = false;
+    public $<$ deletingItemVarName $>;
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
+    public function confirmDeletion(string $<$ model.table.getPrimaryKeyName() $>)
+    {
+        $this-><$ deletingItemVarName $> = $<$ model.table.getPrimaryKeyName() $>;
+
+        $this->confirmingDeletion = true;
+    }
+
+    public function delete(<$ modelName $> $<$ itemVarName $>)
+    {
+        $<$ itemVarName $>->delete();
+
+        $this->confirmingDeletion = false;
+    }
+
+    public function sortBy($field)
+    {
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortDirection = 'asc';
+        }
+
+        $this->sortField = $field;
+    }
+
+    public function getRowsProperty()
+    {
+        return $this->rowsQuery->paginate(5);
+    }
+
+    public function getRowsQueryProperty()
+    {
+        <% if(crud.hasDefaultSearchColumn()) { %>
+        return <$ modelName $>::query()
+            ->orderBy($this->sortField, $this->sortDirection)
+            ->where('<$ crud.defaultSearchColumn.name $>', 'like', "%{$this->search}%");
+        <% } else { %>
+        return <$ modelName $>::query();
+        <% } %>
+    }
+
+    public function render()
+    {
+        return view('livewire.<$ viewsFolderName $>.index', [
+            '<$ collectionVarName $>' => $this->rows,
+        ]);
+    }
+}

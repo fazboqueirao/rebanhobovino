@@ -1,0 +1,95 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ model = Model ] #>
+<# DATA:RENDERABLE [ renderable = model/PolicyRenderable(model) ] #>
+<####>
+
+<# TEMPLATE IMPORTS #>
+<% const camelCase = this.require('camelCase') %>
+<####>
+<# TEMPLATE VARIABLES #>
+<% const model = this.model %>
+<% const modelName = this.model.name %>
+<% const authModel = this.project.getAuthModel() %>
+<% const authModelNameCamelCase = camelCase(authModel.name) %>
+<####>
+
+namespace App\Policies;
+
+use App\Models\<$ modelName $>;
+<% if(!model.isAuthModel()) { %>
+use App\Models\<$ authModel.name $>;
+<% } %>
+// hook:IMPORTS
+
+class <$ this.filenameWithoutExtension $>
+{
+    // hook:TRAITS
+    /**
+     * Determine whether the user can view any models.
+     */
+    public function viewAny(<$ authModel.name $> $<$ authModelNameCamelCase $>): bool
+    {
+        // hook:BEFORE_VIEW_ANY
+        return true;
+    }
+
+    /**
+     * Determine whether the user can view the model.
+     */
+    public function view(<$ authModel.name $> $<$ authModelNameCamelCase $>, <$ modelName $> $model): bool
+    {
+        // hook:BEFORE_VIEW
+        return true;
+    }
+
+    /**
+     * Determine whether the user can create models.
+     */
+    public function create(<$ authModel.name $> $<$ authModelNameCamelCase $>): bool
+    {
+        // hook:BEFORE_CREATE
+        return true;
+    }
+
+    /**
+     * Determine whether the user can update the model.
+     */
+    public function update(<$ authModel.name $> $<$ authModelNameCamelCase $>, <$ modelName $> $model): bool
+    {
+        // hook:BEFORE_UPDATE
+        return true;
+    }
+
+    /**
+     * Determine whether the user can delete the model.
+     */
+    public function delete(<$ authModel.name $> $<$ authModelNameCamelCase $>, <$ modelName $> $model): bool
+    {
+        // hook:BEFORE_DELETE
+        return true;
+    }
+
+    /**
+     * Determine whether the user can restore the model.
+     */
+    public function restore(<$ authModel.name $> $<$ authModelNameCamelCase $>, <$ modelName $> $model): bool
+    {
+        // hook:BEFORE_RESTORE
+        return true;
+    }
+
+    /**
+     * Determine whether the user can permanently delete the model.
+     */
+    public function forceDelete(<$ authModel.name $> $<$ authModelNameCamelCase $>, <$ modelName $> $model): bool
+    {
+        // hook:BEFORE_FORCE_DELETE
+        return true;
+    }
+
+    // hook:METHODS
+}

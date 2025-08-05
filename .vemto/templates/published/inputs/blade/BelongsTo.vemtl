@@ -1,0 +1,33 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ input = Input ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<% const input = this.input %>
+<% const crud = input.crud %>
+<% const camelCase = this.require("camelCase") %>
+<% const pascalCase = this.require("pascalCase") %>
+<% const itemVarName = camelCase(crud.settings.itemName) %>
+<% const fieldName = input.column?.name || input.name %>
+
+<div class="vtheme(crud.form.input.group)">
+    <x-ui.label for="<$ input.name $>"><$ this.helpers.lang(input.label) $></x-ui.label>
+    <x-ui.input.select
+        wire:model="form.<$ input.column.name $>" 
+        name="<$ input.name $>" 
+        id="<$ input.name $>"
+        class="vtheme(crud.form.input.extra)">
+        <# Select options #>
+        <% const model = input.getRelatedModel() %>
+        <% const label = model.table.getLabelColumnName() %>
+        <% const primaryKey = model.table.getPrimaryKeyName() %>
+        <option value="">Select data</option>
+        @foreach ($<$ camelCase(model.plural) $> as $value => $label)
+            <option value="{{ $value }}">{{ $label }}</option>
+        @endforeach
+        <# --- #>
+    </x-ui.input.select>
+    <x-ui.input.error for="form.<$ input.column.name $>" />
+</div>

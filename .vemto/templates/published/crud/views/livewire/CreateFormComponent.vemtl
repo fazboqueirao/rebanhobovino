@@ -1,0 +1,86 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:RENDERABLE [ renderable = crud/views/livewire/LivewireCreateFormComponentRenderable(crud) ] #>
+<####>
+
+
+<% const crud = this.crud %>
+<% const modelName = crud.model.name %>
+<% const camelCase = this.require('camelCase') %>
+<% const pascalCase = this.require('pascalCase') %>
+<% const paramCase = this.require('paramCase') %>
+<% const itemVarName = camelCase(crud.settings.itemName) %>
+<% const collectionVarName = camelCase(crud.settings.collectionName) %>
+
+namespace <$ crud.livewireFormsNamespace $>;
+ 
+use Livewire\Form;
+use Livewire\Attributes\Rule;
+use App\Models\<$ modelName $>;
+<% if(this.crud.hasPasswordInputs()) { %>
+use Illuminate\Support\Facades\Hash;
+<% } %>
+// hook:IMPORTS
+ 
+class <$ this.filenameWithoutExtension $> extends Form
+{
+    // hook:TRAITS
+
+    // hook:BEFORE_VARIABLES
+    <% for (let input of crud.inputs) { %>
+        #[Rule('<$ input.getCreationRulesForTemplate() $>')]
+        <# --- #>
+        public $<$ input.column.name $> = '<$ input.defaultValue || '' $>';
+        
+        <% if (input.isFileOrImage()) { %>
+        public $<$ input.getNewPropertyName() $> = null;
+        <% } %>
+
+    <% } %>
+    // hook:AFTER_VARIABLES
+
+    public function save()
+    {
+        // hook:BEFORE_STORE_VALIDATE
+        $this->validate();
+        // hook:AFTER_STORE_VALIDATE
+
+        <% for (let input of crud.getFileInputs()) { %>
+        $this->process<$ pascalCase(input.name) $>();
+        <% } %>
+
+        <% for(let input of crud.getPasswordInputs()) { %>
+            $this-><$ input.column.name $> = Hash::make($this-><$ input.column.name $>);
+        <% } %>
+
+        $<$ itemVarName $> = <$ modelName $>::create($this->except([
+            <% for(let input of crud.getFileInputs()) { %>
+            '<$ input.getNewPropertyName() $>',
+            <% } %>
+        ]));
+        // hook:BEFORE_RESET
+        $this->reset();
+        // hook:AFTER_STORE
+
+        return $<$ itemVarName $>;
+    }
+
+    <% for (let input of crud.getFileInputs()) { %>
+    public function process<$ pascalCase(input.name) $>()
+    {
+        if (empty($this-><$ input.getNewPropertyName() $>)) return;
+        
+        $this-><$ input.column.name $> = $this-><$ input.getNewPropertyName() $>->store('<$ input.getFileDiskName() $>', 'public');
+    }
+
+    public function delete<$ pascalCase(input.name) $>()
+    {
+        $this-><$ input.getNewPropertyName() $> = null;
+    }
+    <% } %>
+    // hook:METHODS
+}

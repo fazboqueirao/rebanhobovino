@@ -1,0 +1,35 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+@props([
+    'head',
+    'body',
+    'foot'
+])
+
+<div class="vtheme(table.container)">
+    <table {!! $attributes->merge(['class' => 'vtheme(table)']) !!}>
+        @if(isset($head))
+        <thead class="vtheme(table.head)">
+            <tr class="vtheme(table.head.row)">
+                {{ $head }}
+            </tr>
+        </thead>
+        @endif
+
+        @if(isset($body))
+        <tbody class="vtheme(table.body)">
+            {{ $body }}
+        </tbody>
+        @endif
+
+        @if(isset($foot))
+        <tfoot class="vtheme(table.foot)">
+            {{ $foot }}
+        </tfoot>
+        @endif
+    </table>
+    
+</div>

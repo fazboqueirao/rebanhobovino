@@ -1,0 +1,55 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ column = Column ] #>
+<# DATA:EXPOSE_LOCAL [ exposed_variables = column ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+$table-><$ column.type $>('<$ column.name $>'
+<up if (column.length) { up>
+, <$ column.length $>
+<up } up>
+<# --- #>
+<up if (column.precision) { up>
+, <$ column.precision $>
+<up } up>
+<# --- #>
+<up if (column.scale) { up>
+, <$ column.scale $>
+<up } up>
+<# --- #>
+<up if (column.options && column.options.length) { up>
+, <$ JSON.stringify(column.options).replace(/"/g, '\'') $>
+<up } up>)
+<# --- #>
+<up if (column.default) { up>
+->default(<$ column.getDefaultForTemplate() $>)
+<up } up>
+<# --- #>
+<up if (column.unsigned) { up>
+->unsigned()
+<up } up>
+<# --- #>
+<up if (column.nullable) { up>
+->nullable()
+<up } up>
+<# --- #>
+<up if (column.isAutoIncrement()) { up>
+->autoIncrement()
+<up } up>
+<# --- #>
+<up if (column.isImplicitlyUnique()) { up>
+->unique()
+<up } up>
+<up if (column.hasImplicitIndex()) { up>
+->index()
+<up } up>
+<% const columnAfter = column.getAfter() %>
+<up if (columnAfter && (this.templateParams.enableColumnAfterUsage)) { up>
+->after('<$ columnAfter $>')
+<up } up>
+<# Adds the ->change() method if the column is being changed #>
+<up if (this.templateParams.addChangeMethod) { up>
+->change()
+<up } up>;

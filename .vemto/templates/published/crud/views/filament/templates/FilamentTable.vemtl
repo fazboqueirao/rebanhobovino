@@ -1,0 +1,124 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ input = Input ] #>
+<# DATA:EXPOSE_LOCAL [ exposed_variables = input ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<% const inputColumnData = input.filamentSettings.columnData %>
+<% const columnName = !input.isBelongsTo() ? input.name : `${input.relationship.name}.${input.relationship.relatedModel.table.getLabelColumnName()}` %>
+<% const inputLabel = input.isBelongsTo() ? `'${capitalCase(input.relationship.name)}'` : this.helpers.toTranslatableFormat(input.label) %>
+<###>
+<$ pascalCase(inputColumnData.columnType) $>::make('<$ columnName $>')
+    ->label(<$ inputLabel $>)
+    <% if(input.isImage() && input.filamentSettings.formData.disk) { %>
+        ->disk('<$ input.filamentSettings.formData.disk $>')
+    <% } %>
+    <# --- #>
+    <% if(input.isImage() && input.filamentSettings.formData.visibility) { %>
+        ->visibility('<$ input.filamentSettings.formData.visibility $>')
+    <% } %>
+    <# --- #>
+    <% if(input.isTextarea() || input.filamentSettings.columnData.textLimit) { %>
+        ->limit(<$ input.filamentSettings.columnData.textLimit || 255 $>)
+    <% } %>
+    <# --- #>
+    <% if(input.filamentSettings.formData.allowHtml) { %>
+        ->html()
+    <% } %>
+    <# --- #>
+    <% if(['select-column'].includes(inputColumnData.columnType) && input.items?.length) { %>
+        ->options([
+            <% for(let option of input.items) { %>
+                '<$ option.value $>' => '<$ option.label $>',
+            <% } %>
+        ])
+        <###>
+        <% if(input.filamentSettings.formData.canSelectPlaceholder === false) { %>
+            ->selectablePlaceholder(false)
+        <% } %>
+    <% } %>
+    <# --- #>
+    <% if(['icon-column'].includes(inputColumnData.columnType) && inputColumnData.icons?.length) { %>
+        ->icon(fn (string $state): string => match ($state) {
+            <% for(let option of inputColumnData.icons) { %>
+                '<$ option.label $>' => '<$ option.iconName $>',
+            <% } %>
+        })
+    <% } %>
+    <# --- #>
+    <% if(inputColumnData.description && this.project.getDefaultTranslation(inputColumnData.description)?.length) { %>
+        ->description(<$ this.helpers.toTranslatableFormat(inputColumnData.description) $>)
+    <% } %>
+    <# --- #>
+    <% if(inputColumnData.label && this.project.getDefaultTranslation(inputColumnData.label)?.length) { %>
+        ->label(<$ this.helpers.toTranslatableFormat(inputColumnData.label) $>)
+    <% } %>
+    <# --- #>
+    <% if(inputColumnData.canBeSortable) { %>
+        ->sortable()
+    <% } %>
+    <# --- #>
+    <% if(inputColumnData.canBeToggled) { %>
+        ->toggleable()
+    <% } %>
+    <# --- #>
+    <% if(inputColumnData.isMarkdown) { %>
+        ->markdown()
+    <% } %>
+    <# --- #>
+    <% if(inputColumnData.iconName) { %>
+        ->icon('<$ inputColumnData.iconName $>')
+        <###>
+        <% if(inputColumnData.iconColor) { %>
+            ->iconColor('<$ inputColumnData.iconColor $>')
+        <% } %>
+    <% } %>
+    <# --- #>
+    <% if(inputColumnData.canBeSearchable) { %>
+        ->searchable()
+    <% } %>
+    <# --- #>
+    <% if(inputColumnData.showAsNumeric) { %>
+        ->numeric(
+            <% if(inputColumnData.decimalPlaces) { %>
+                decimalPlaces: <$ inputColumnData.decimalPlaces $>,
+            <% } %>
+            <###>
+            <% if(inputColumnData.decimalSeparator) { %>
+                decimalSeparator: '<$ inputColumnData.decimalSeparator $>',
+            <% } %>
+            <###>
+            <% if(inputColumnData.thousandsSeparator) { %>
+                thousandsSeparator: '<$ inputColumnData.thousandsSeparator $>',
+            <% } %>
+        )
+    <% } %>
+    <# --- #>
+    <% if(inputColumnData.showAsBadge) { %>
+        ->badge()
+    <% } %>
+    <# --- #>
+    <% if(inputColumnData.badgeColors?.length) { %>
+        ->color(fn (string $state): string => match ($state) {
+            <###>
+            <% for(let badgeColor of inputColumnData.badgeColors) { %>
+                <% const badgeColorLabel = badgeColor.label === 'default' ? badgeColor.label : `'${badgeColor.label}'` %>
+                <###>
+                <$ badgeColorLabel $> => '<$ badgeColor.color $>',
+            <% } %>
+        })
+    <% } %>
+    <# --- #>
+    <% if(inputColumnData.prefix) { %>
+        ->prefix('<$ inputColumnData.prefix $>')
+    <% } %>
+    <# --- #>
+    <% if(inputColumnData.suffix) { %>
+        ->suffix('<$ inputColumnData.suffix $>')
+    <% } %>
+    <# --- #>
+    <% if(input.isDateOrDateTime()) { %>
+        ->since()
+    <% } %>,

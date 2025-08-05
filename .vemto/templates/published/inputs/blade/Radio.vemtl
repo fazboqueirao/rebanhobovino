@@ -1,0 +1,27 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ input = Input ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<% const input = this.input %>
+<% const crud = input.crud %>
+<% const camelCase = this.require("camelCase") %>
+
+<div class="vtheme(crud.form.input.radio.group)">
+    <x-ui.label for="<$ input.name $>"><$ this.helpers.lang(input.label) $></x-ui.label>
+    <% for (let item of input.items) { %>
+        <div class="vtheme(crud.form.input.radio.box)">
+            <x-ui.input.radio
+                class="vtheme(crud.form.input.extra)"
+                wire:model="form.<$ input.column.name $>"
+                name="<$ input.name $>"
+                id="<$ item.value $>"
+                value="<$ item.value $>"
+            />
+            <x-ui.label for="<$ item.value $>"><$ item.label $></x-ui.label>
+        </div>
+    <% } %>
+    <x-ui.input.error for="form.<$ input.column.name $>" />
+</div>

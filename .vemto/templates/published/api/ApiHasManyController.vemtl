@@ -1,0 +1,103 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:MODEL [ relationship = Relationship ] #>
+<# DATA:MODEL [ relationshipCrud = Crud ] #>
+<# DATA:RENDERABLE [ renderable = crud/controllers/ApiHasManyControllerRenderable(crud, relationship) ] #>
+<####>
+
+<# TEMPLATE VARIABLES #>
+<% const pascalCase = this.require('pascalCase') %>
+<% const camelCase = this.require('camelCase') %>
+<% const modelNamePascalCase = pascalCase(this.crud.model.name) %>
+<% const modelNameCamelCase = camelCase(this.crud.model.name) %>
+<####>
+
+namespace App\Http\Controllers\Api;
+
+use Illuminate\Http\Response;
+use <$ this.crud.model.getClassString() $>;
+use App\Http\Resources\<$ this.relationship.relatedModel.name $>Resource;
+use App\Http\Resources\<$ this.relationship.relatedModel.name $>Collection;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+<% if(this.crud.hasPasswordInputs()) { %>
+use Illuminate\Support\Facades\Hash;
+<% } %>
+<% if(this.crud.model.table.hasUniqueColumns()) { %>
+use Illuminate\Validation\Rule;
+<% } %>
+
+class <$ this.filenameWithoutExtension $> extends Controller
+{
+    public function index(Request $request, <$ modelNamePascalCase $> $<$ modelNameCamelCase $>): <$ this.relationship.relatedModel.name $>Collection
+    {
+        $search = $request->get('search', '');
+
+        $<$ camelCase(this.relationship.relatedModel.plural) $> = $this->getSearchQuery($search, $<$ modelNameCamelCase $>)
+            ->latest()
+            ->paginate();
+
+        return new <$ this.relationship.relatedModel.name $>Collection($<$ camelCase(this.relationship.relatedModel.plural) $>);
+    }
+
+    public function store(Request $request, <$ modelNamePascalCase $> $<$ modelNameCamelCase $>): <$ this.relationship.relatedModel.name $>Resource
+    {
+        $validated = $request->validate([
+            <% for (let input of this.relationshipCrud.inputs) { %>
+                <% if(!! input.creationRules.length && !input.isRelatedToModel(this.crud.model)) { %>
+                    '<$ input.name $>' => [<$ input.getCreationRulesForCrudRequest() $>],
+                <% } %>
+            <% } %>
+        ]);
+        
+        <% if(this.relationshipCrud.hasPasswordInputs()) { %>
+            <###>
+            <% for(let input of this.relationshipCrud.getPasswordInputs()) { %>
+                <% if(!input.isRequiredOnCreation()) { %>
+                    if(!empty($validated['<$ input.name $>'])) {
+                <% } %>
+                $validated['<$ input.name $>'] = Hash::make($validated['<$ input.name $>']);
+                <% if(!input.isRequiredOnCreation()) { %>
+                    }
+                <% } %>
+
+            <% } %>
+        <% } %>
+
+        <% if(this.relationshipCrud.hasFileInputs()) { %>
+            <###>
+            <% for(let input of this.relationshipCrud.getFileInputs()) { %>
+                if($request->hasFile('<$ input.name $>')) {
+                    $validated['<$ input.name $>'] = $request->file('<$ input.name $>')->store('public');
+                }
+                
+            <% } %>
+        <% } %>
+
+        <% if(this.relationshipCrud.hasJsonInputs()) { %>
+            <###>
+            <% for(let input of this.relationshipCrud.getJsonInputs()) { %>
+                $validated['<$ input.name $>'] = json_encode($validated['<$ input.name $>'], true);
+
+            <% } %>
+        <% } %>
+
+        $<$ camelCase(this.relationship.relatedModel.name) $> = $<$ modelNameCamelCase $>-><$ this.relationship.name $>()->create($validated);
+
+        return new <$ this.relationship.relatedModel.name $>Resource($<$ camelCase(this.relationship.relatedModel.name) $>);
+    }
+
+    public function getSearchQuery(string $search, <$ modelNamePascalCase $> $<$ modelNameCamelCase $>)
+    {
+        <% if(this.relationshipCrud.hasDefaultSearchColumn()) { %>
+        return $<$ modelNameCamelCase $>-><$ this.relationship.name $>()
+            ->where('<$ this.relationshipCrud.defaultSearchColumn.name $>', 'like', "%{$search}%");
+        <% } else { %>
+        return $<$ modelNameCamelCase $>-><$ this.relationship.name $>();
+        <% } %>
+    }
+}

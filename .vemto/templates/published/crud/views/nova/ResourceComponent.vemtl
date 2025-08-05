@@ -1,0 +1,277 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:MODEL [ model = Model ] #>
+<# DATA:RENDERABLE [ renderable = crud/views/nova/NovaResourceRenderable(crud) ] #>
+<####>
+
+
+<% const pascalCase = this.require('pascalCase') %>
+<% const capitalCase = this.require('capitalCase') %>
+
+namespace App\Nova;
+
+use Laravel\Nova\Http\Requests\NovaRequest;
+<% if(this.crud.table.hasPrimaryKey()) { %>
+    use Laravel\Nova\Fields\ID;
+<% } %>
+<###>
+<% for (let input of this.crud.getInputsForForms()) { %>
+    use Laravel\Nova\Fields\<$ pascalCase(input.novaSettings.inputType) $>;
+<% } %>
+<###>
+<% if(this.crud.hasHasManyDetails()) { %>
+    use Laravel\Nova\Fields\HasMany;
+<% } %>
+<###>
+<% if(this.crud.hasBelongsToManyDetails()) { %>
+    use Laravel\Nova\Fields\BelongsToMany;
+<% } %>
+<###>
+<% if(this.crud.hasMorphToManyDetails()) { %>
+    use Laravel\Nova\Fields\MorphToMany;
+<% } %>
+<###>
+<% if(this.crud.hasMorphManyDetails()) { %>
+    use Laravel\Nova\Fields\MorphMany;
+<% } %>
+<###>
+<% for(let detail of this.crud.getManyToManyDetails()) { %>
+    <# --- #>
+    <% for(let input of detail.detailCrud.getInputsForForms()) { %>
+        use Laravel\Nova\Fields\<$ pascalCase(input.novaSettings.inputType) $>;
+    <% } %>
+<% } %>
+
+class <$ this.filenameWithoutExtension $> extends Resource
+{
+    /**
+     * The model the resource corresponds to.
+     *
+     * @var class-string<\<$ this.model.getClassString() $>>
+     */
+    public static $model = \<$ this.model.getClassString() $>::class;
+
+    /**
+     * The single value that should be used to represent the resource when being displayed.
+     *
+     * @var string
+     */
+    public static $title = '<$ this.model.table.getLabelColumnName() $>';
+
+    <% if(!this.crud.novaSettings.displayInNavigation) { %>
+        /**
+         * Indicates if the resource should be displayed in the sidebar.
+         *
+         * @var bool
+         */
+        public static $displayInNavigation = false;
+    <% } %>
+
+    <% if(this.crud.novaSettings.group) { %>
+        /**
+         * The logical group associated with the resource.
+         *
+         * @var string
+         */
+        public static $group = '<$ this.crud.novaSettings.group $>';
+    <% } %>
+
+    <% if(this.crud.novaSettings.tableStyle != 'default') { %>
+        /**
+         * The visual style used for the table. Available options are 'tight' and 'default'.
+         *
+         * @var string
+         */
+        public static $tableStyle = '<$ this.crud.novaSettings.tableStyle $>';
+    <% } %>
+
+    <% if(this.crud.novaSettings.showColumnBorders) { %>
+        /**
+         * Whether to show borders for each column on the X-axis.
+         *
+         * @var bool
+         */
+        public static $showColumnBorders = true;
+    <% } %>
+
+    <% if(this.crud.novaSettings.clickAction != 'detail') { %>
+        /**
+         * The click action to use when clicking on the resource in the table.
+         *
+         * @var string
+         */
+        public static $clickAction = '<$ this.crud.novaSettings.clickAction $>';
+    <% } %>
+
+    <% if(!this.crud.novaSettings.trafficCop) { %>
+        /**
+         * Indicates whether Nova should check for modifications between viewing and updating a resource.
+         *
+         * @var bool
+         */
+        public static $trafficCop = false;
+    <% } %>
+
+    <% if(this.crud.novaSettings.polling) { %>
+        /**
+         * Indicates whether the resource should automatically poll for new resources.
+         *
+         * @var bool
+         */
+        public static $polling = true;
+
+        <% if(this.crud.novaSettings.pollingInterval) { %>
+            /**
+             * The interval at which Nova should poll for new resources.
+             *
+             * @var int
+             */
+            public static $pollingInterval = <$ this.crud.novaSettings.pollingInterval $>;
+        <% } %>
+
+        <% if(this.crud.novaSettings.showPollingToggle) { %>
+            /**
+             * Indicates whether to show the polling toggle button inside Nova.
+             *
+             * @var int
+             */
+            public static $showPollingToggle = true;
+        <% } %>
+    <% } %>
+
+    <% if(this.crud.novaSettings.debounce) { %>
+        /**
+         * The debounce amount (in seconds) to use when searching this resource.
+         *
+         * @var float
+         */
+        public static $debounce = 0.5; // 0.5 seconds
+    <% } %>
+
+    /**
+     * The columns that should be searched.
+     *
+     * @var array
+     */
+    public static $search = [
+        <% if(this.crud.table.hasPrimaryKey()) { %>
+            '<$ this.crud.table.getPrimaryKeyName() $>',
+        <% } %>
+        <###>
+        '<$ this.model.table.getLabelColumnName() $>'
+    ];
+
+    /**
+     * Get the fields displayed by the resource.
+     *
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @return array
+     */
+    public function fields(NovaRequest $request)
+    {
+        return [
+            <% if(!this.crud.isManyToManyDetail()) { %>
+                <###>
+                <% if(this.crud.table.hasPrimaryKey()) { %>
+                    ID::make()->sortable(),
+                <% } %>
+                <# --- #>
+                <% for(let input of this.crud.getInputsForForms()) { %>
+                    <import template="crud/views/nova/templates/NovaForm.vemtl">
+                <% } %>
+                
+                <% for(let hasManyDetail of this.crud.hasManyDetails) { %>
+                    HasMany::make(
+                        '<$ capitalCase(hasManyDetail.relationship.name) $>',
+                        '<$ hasManyDetail.relationship.name $>',
+                        <$ pascalCase(hasManyDetail.detailCrud.settings.itemName) $>::class
+                    ),
+                <% } %>
+
+                <% for(let morphManyDetail of this.crud.morphManyDetails) { %>
+                    MorphMany::make(
+                        '<$ capitalCase(morphManyDetail.relationship.name) $>',
+                        '<$ morphManyDetail.relationship.name $>',
+                        <$ pascalCase(morphManyDetail.detailCrud.settings.itemName) $>::class
+                    ),
+                <% } %>
+
+                <% for(let belongsToManyDetail of this.crud.belongsToManyDetails) { %>
+                    BelongsToMany::make(
+                        '<$ capitalCase(belongsToManyDetail.relationship.name) $>',
+                        '<$ belongsToManyDetail.relationship.name $>',
+                        <$ pascalCase(belongsToManyDetail.detailCrud.settings.itemName) $>::class
+                    )->fields(function () {
+                        return [
+                            <% for(let input of belongsToManyDetail.detailCrud.getInputsForNovaDetailForms()) { %>
+                                <import template="crud/views/nova/templates/NovaForm.vemtl">
+                            <% } %>
+                        ];
+                    }),
+                <% } %>
+
+                <% for(let morphToManyDetail of this.crud.morphToManyDetails) { %>
+                    MorphToMany::make(
+                        '<$ capitalCase(morphToManyDetail.relationship.name) $>',
+                        '<$ morphToManyDetail.relationship.name $>',
+                        <$ pascalCase(morphToManyDetail.detailCrud.settings.itemName) $>::class
+                    )->fields(function () {
+                        return [
+                            <% for(let input of morphToManyDetail.detailCrud.getInputsForNovaDetailForms()) { %>
+                                <import template="crud/views/nova/templates/NovaForm.vemtl">
+                            <% } %>
+                        ];
+                    }),
+                <% } %>
+            <% } %>
+        ];
+    }
+
+    /**
+     * Get the cards available for the request.
+     *
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @return array
+     */
+    public function cards(NovaRequest $request)
+    {
+        return [];
+    }
+
+    /**
+     * Get the filters available for the resource.
+     *
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @return array
+     */
+    public function filters(NovaRequest $request)
+    {
+        return [];
+    }
+
+    /**
+     * Get the lenses available for the resource.
+     *
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @return array
+     */
+    public function lenses(NovaRequest $request)
+    {
+        return [];
+    }
+
+    /**
+     * Get the actions available for the resource.
+     *
+     * @param  \Laravel\Nova\Http\Requests\NovaRequest  $request
+     * @return array
+     */
+    public function actions(NovaRequest $request)
+    {
+        return [];
+    }
+}

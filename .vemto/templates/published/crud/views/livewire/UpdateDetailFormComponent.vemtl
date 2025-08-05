@@ -1,0 +1,109 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ detail = HasManyDetail ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:RENDERABLE [ renderable = crud/views/livewire/LivewireUpdateDetailFormComponentRenderable(detail) ] #>
+<####>
+
+
+<% const crud = this.crud %>
+<% const modelName = crud.model.name %>
+<% const camelCase = this.require('camelCase') %>
+<% const pascalCase = this.require('pascalCase') %>
+<% const paramCase = this.require('paramCase') %>
+<% const itemVarName = camelCase(crud.settings.itemName) %>
+<% const collectionVarName = camelCase(crud.settings.collectionName) %>
+
+namespace <$ crud.livewireFormsNamespace $>;
+ 
+use Livewire\Form;
+use Livewire\Attributes\Rule;
+use App\Models\<$ modelName $>;
+<% if(this.crud.hasPasswordInputs()) { %>
+use Illuminate\Support\Facades\Hash;
+<% } %>
+// hook:IMPORTS
+ 
+class <$ this.filenameWithoutExtension $> extends Form
+{
+    // hook:TRAITS
+
+    // hook:BEFORE_VARIABLES
+    public ?<$ modelName $> $<$ itemVarName $>;
+
+    <% for (let input of crud.inputs) { %>
+        public $<$ input.column.name $> = '<$ input.defaultValue || '' $>';
+        
+        <% if (input.isFileOrImage()) { %>
+        public $<$ input.getNewPropertyName() $> = null;
+        <% } %>
+
+    <% } %>
+    // hook:AFTER_VARIABLES
+
+    public function rules(): array
+    {
+        return [
+            // hook:RULES
+            <% for (let input of crud.inputs) { %>
+                '<$ input.column.name $>' => [<$ input.getUpdateRulesForLivewireMethod(crud) $>],
+            <% } %>
+        ];
+    }
+    
+    public function set<$ modelName $>(<$ modelName $> $<$ itemVarName $>)
+    {
+        $this-><$ itemVarName $> = $<$ itemVarName $>;
+        
+        <% for (let input of crud.getFillableInputs()) { %>
+            <# --- #>
+            $this-><$ input.column.name $> = $<$ itemVarName $>-><$ input.column.name $>;
+        <% } %>
+    }
+
+    public function save()
+    {
+        // hook:BEFORE_UPDATE_VALIDATE
+        $this->validate();
+        // hook:AFTER_UPDATE_VALIDATE
+
+        <% for (let input of crud.getFileInputs()) { %>
+        $this->process<$ pascalCase(input.name) $>();
+        <% } %>
+
+        <% for(let input of crud.getPasswordInputs()) { %>
+            $this-><$ input.column.name $> = Hash::make($this-><$ input.column.name $>);
+        <% } %>
+
+        $this-><$ itemVarName $>->update($this->except([
+            '<$ itemVarName $>',
+            <# --- #>
+            <% for(let input of crud.getBelongsToInputs()) { %>
+                '<$ input.column.name $>',
+            <% } %>
+            <# --- #>
+            <% for(let input of crud.getFileInputs()) { %>
+            '<$ input.getNewPropertyName() $>',
+            <% } %>
+        ]));
+    }
+
+    <% for (let input of crud.getFileInputs()) { %>
+    <% const fieldName = input.column?.name || input.name %>
+    public function process<$ pascalCase(input.name) $>()
+    {
+        if (empty($this-><$ input.getNewPropertyName() $>)) return;
+        
+        $this-><$ itemVarName $>-><$ fieldName $> = $this-><$ input.getNewPropertyName() $>->store('<$ input.getFileDiskName() $>', 'public');
+    }
+
+    public function delete<$ pascalCase(input.name) $>()
+    {
+        $this-><$ input.getNewPropertyName() $> = null;
+    }
+    <% } %>
+    // hook:METHODS
+}

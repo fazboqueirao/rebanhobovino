@@ -1,0 +1,31 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ index = Index ] #>
+<# DATA:EXPOSE_LOCAL [ exposed_variables = index ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<% if (index.isCommon()) { %>
+    $table->dropIndex('<$ index.name $>');
+<% } %>
+<# #>
+<% if (index.isForeign()) { %>
+    $table->dropForeign('<$ index.name $>');
+<% } %>
+<# #>
+<% if (index.isUnique()) { %>
+    $table->dropUnique('<$ index.name $>');
+<% } %>
+<# #>
+<% if (index.isPrimary()) { %>
+    $table->dropPrimary('<$ index.name $>');
+<% } %>
+<# #>
+<% if (index.isFullText()) { %>
+    $table->dropFullText('<$ index.name $>');
+<% } %>
+<# #>
+<% if (index.isSpatial()) { %>
+    $table->dropSpatialIndex('<$ index.name $>');
+<% } %>

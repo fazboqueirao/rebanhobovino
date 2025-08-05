@@ -1,0 +1,10 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ table = Table ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+Schema::table('<$ this.table.name $>', function (Blueprint $table) {
+    <import template="migrations/UpdaterMigrationColumns.vemtl">
+});

@@ -1,0 +1,75 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:MODEL [ relationship = Relationship ] #>
+<# DATA:MODEL [ relationshipCrud = Crud ] #>
+<# DATA:RENDERABLE [ renderable = crud/controllers/ApiBelongsToManyControllerRenderable(crud, relationship) ] #>
+<####>
+
+<# TEMPLATE VARIABLES #>
+<% const pascalCase = this.require('pascalCase') %>
+<% const camelCase = this.require('camelCase') %>
+<% const modelNamePascalCase = pascalCase(this.relationship.model.name) %>
+<% const modelNameCamelCase = camelCase(this.relationship.model.name) %>
+<% const relatedModelNamePascalCase = pascalCase(this.relationship.relatedModel.name) %>
+<% const relatedModelNameCamelCase = camelCase(this.relationship.relatedModel.name) %>
+<####>
+
+namespace App\Http\Controllers\Api;
+
+use Illuminate\Http\Response;
+use <$ this.relationship.model.getClassString() $>;
+use <$ this.relationship.relatedModel.getClassString() $>;
+use App\Http\Resources\<$ this.relationship.relatedModel.name $>Resource;
+use App\Http\Resources\<$ this.relationship.relatedModel.name $>Collection;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+<% if(this.crud.hasPasswordInputs()) { %>
+use Illuminate\Support\Facades\Hash;
+<% } %>
+<% if(this.crud.model.table.hasUniqueColumns()) { %>
+use Illuminate\Validation\Rule;
+<% } %>
+
+class <$ this.filenameWithoutExtension $> extends Controller
+{
+    public function index(Request $request, <$ modelNamePascalCase $> $<$ modelNameCamelCase $>): <$ this.relationship.relatedModel.name $>Collection
+    {
+        $search = $request->get('search', '');
+
+        $<$ camelCase(this.relationship.relatedModel.plural) $> = $this->getSearchQuery($search, $<$ modelNameCamelCase $>)
+            ->latest()
+            ->paginate();
+
+        return new <$ this.relationship.relatedModel.name $>Collection($<$ camelCase(this.relationship.relatedModel.plural) $>);
+    }
+
+    public function store(Request $request, <$ modelNamePascalCase $> $<$ modelNameCamelCase $>, <$ relatedModelNamePascalCase $> $<$ relatedModelNameCamelCase $>): Response
+    {
+        $<$ modelNameCamelCase $>-><$ this.relationship.name $>()->syncWithoutDetaching([
+            $<$ relatedModelNameCamelCase $>-><$ this.relationship.relatedModel.getPrimaryKeyName() $>
+        ]);
+
+        return response()->noContent();
+    }
+
+    public function destroy(Request $request, <$ modelNamePascalCase $> $<$ modelNameCamelCase $>, <$ relatedModelNamePascalCase $> $<$ relatedModelNameCamelCase $>): Response
+    {
+        $<$ modelNameCamelCase $>-><$ this.relationship.name $>()->detach($<$ relatedModelNameCamelCase $>);
+
+        return response()->noContent();
+    }
+
+    public function getSearchQuery(string $search, <$ modelNamePascalCase $> $<$ modelNameCamelCase $>)
+    {
+        <% if(this.relationshipCrud.hasDefaultSearchColumn()) { %>
+        return $<$ modelNameCamelCase $>-><$ this.relationship.name $>()
+            ->where('<$ this.relationshipCrud.defaultSearchColumn.name $>', 'like', "%{$search}%");
+        <% } else { %>
+        return $<$ modelNameCamelCase $>-><$ this.relationship.name $>();
+        <% } %>
+    }
+}

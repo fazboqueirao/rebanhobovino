@@ -1,0 +1,43 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ table = Table ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<# TEMPLATE VARIABLES #>
+<# const pascalCase = TemplateRequire('pascalCase') #>
+<####>
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+<% if (this.project.laravelVersionGreaterThanOrEqualTo('9')) { %>
+return new class extends Migration
+<% } else { %>
+class Update<$ this.table.name $>Table extends Migration
+<% } %>
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        <import template="migrations/UpdaterSchema.vemtl">
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        <import template="migrations/UpdaterSchemaDown.vemtl">
+    }
+}<% if (this.project.laravelVersionGreaterThanOrEqualTo('9')) { %>;<% } %>

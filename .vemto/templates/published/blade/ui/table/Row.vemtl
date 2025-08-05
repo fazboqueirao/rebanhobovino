@@ -1,0 +1,8 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<tr {!! $attributes->merge(['class' => 'vtheme(table.body.row)']) !!}>
+    {{ $slot }}
+</tr>

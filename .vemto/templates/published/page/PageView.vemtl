@@ -1,0 +1,14 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ page = Page ] #>
+<# DATA:RENDERABLE [ renderable = page/PageViewRenderable(page) ] #>
+<####>
+<# Template Variables #>
+<% const ComponentRenderer = this.require("ComponentRenderer") %>
+<# - #>
+<div>
+    <% for (let component of this.page.getComponents()) { %>
+    <$ await ComponentRenderer.render(component) $>
+    <% } %>
+</div>

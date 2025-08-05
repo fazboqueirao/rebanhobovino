@@ -1,0 +1,101 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:RENDERABLE [ renderable = theme/PreviewRenderable() ] #>
+<####>
+<% const cdnLink = this.project.getVthemeCdn() %>
+<% if (cdnLink && cdnLink.includes('tailwind')) { %>
+<script src="<$ cdnLink $>"></script>
+<% } else { %>
+<link href="<$ cdnLink $>" rel="stylesheet" crossorigin="anonymous"></link>
+<% } %>
+
+<div style="padding-bottom: 5rem;">
+    <div class="vtheme(crud.index.container)">
+        <div class="vtheme(crud.tools)">
+            <input class="vtheme(ui.input)" type="text" placeholder="Search..." />
+    
+            <a href="#" onclick="event.preventDefault();">
+                <button class="vtheme(ui.button)">New Item</button>
+            </a>
+        </div>
+    
+        <div>
+            <div class="vtheme(table.container)">
+                <table class="vtheme(table)">
+                    <thead class="vtheme(table.head)">
+                        <tr class="vtheme(table.head.row)">
+                            <th class="vtheme(table.head.col) vtheme(crud.table.head.col.extra)">Name</th>
+                            <th class="vtheme(table.head.col) vtheme(crud.table.head.col.extra)">Description</th>
+                            <th class="vtheme(crud.table.head.action-col)">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="vtheme(table.body)">
+                        <tr class="vtheme(table.body.row)">
+    
+                            <td class="vtheme(table.body.col) vtheme(crud.table.body.col.extra)">Lorem</td>
+                            <td class="vtheme(table.body.col) vtheme(crud.table.body.col.extra)">Provident incidunt veritatis assumenda dolor in, nam vitae.</td>
+    
+                            <td class="vtheme(crud.table.body.action-col)">
+                                <a class="vtheme(crud.action-link)" href="#" onclick="event.preventDefault();">Edit</a>
+                            </td>
+                        </tr>
+    
+                        <tr class="vtheme(table.body.row)">
+    
+                            <td class="vtheme(table.body.col) vtheme(crud.table.body.col.extra)">Ipsum</td>
+                            <td class="vtheme(table.body.col) vtheme(crud.table.body.col.extra)">Totam tempore, mollitia officiis cumque esse dignissimos expedita et delectus rerum, dolor voluptates. Pariatur?</td>
+    
+                            <td class="vtheme(crud.table.body.action-col)">
+                                <a class="vtheme(crud.action-link)" href="#" onclick="event.preventDefault();">Edit</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <br>
+    <hr>
+    <br>
+    
+    <div class="vtheme(crud.container)">
+        <nav class="vtheme(ui.breadcrumbs.container)">
+            <ol class="vtheme(ui.breadcrumbs.list)"> 
+                <li class="vtheme(ui.breadcrumbs.list.item)"><a href="#_" class="vtheme(ui.breadcrumbs.list.item.link)">Dashboard</a></li>
+                <svg class="w-5 h-5 text-gray-400/70" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none" stroke="none"><path d="M10 8.013l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></g></svg>
+                <li class="vtheme(ui.breadcrumbs.list.item)"><a class="vtheme(ui.breadcrumbs.list.item.link) active-breadcrumb">Create Post</a></li>
+            </ol>
+        </nav>
+        
+        <div class="vtheme(crud.header)">
+            <h1>Create Post</h1>
+        </div>
+    
+        <div class="vtheme(crud.form.container)">
+            <form class="vtheme(crud.form)" wire:submit.prevent="save">
+                <div class="vtheme(crud.form.inputs.container)">
+                    <div class="vtheme(crud.form.input.group)">
+                        <label class="vtheme(ui.label)" for="user_id">User</label>
+                        <input class="vtheme(ui.input) vtheme(crud.form.input.extra)" type="text" placeholder="User" />
+                        <p class="vtheme(ui.input.error)">Input with errors</p>
+                    </div>
+
+                    <div class="vtheme(crud.form.input.group)">
+                        <label class="vtheme(ui.label)" for="user_id">Title</label>
+                        <input class="vtheme(ui.input) vtheme(crud.form.input.extra)" type="text" placeholder="Title" />
+                    </div>
+
+                </div>
+                
+                <div class="vtheme(crud.form.buttons-container)">
+                    <div></div>
+                    <div>
+                        <button class="vtheme(ui.button)" type="button">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

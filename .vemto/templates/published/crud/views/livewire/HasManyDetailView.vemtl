@@ -1,0 +1,128 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ hasManyDetail = HasManyDetail ] #>
+<# DATA:RENDERABLE [ renderable = crud/views/livewire/LivewireHasManyDetailViewRenderable(hasManyDetail) ] #>
+<####>
+<# Requires e main variables #>
+<% const camelCase = this.require('camelCase') %>
+<% const pascalCase = this.require('pascalCase') %>
+<% const paramCase = this.require('paramCase') %>
+<% const InputRenderer = this.require("InputRenderer") %>
+<% const hasManyDetail = this.hasManyDetail %>
+<# Parent CRUD Variables #>
+<% const parentCrud = hasManyDetail.crud %>
+<% const parentCrudModel = parentCrud.model %>
+<% const parentCrudItemVarName = camelCase(parentCrud.settings.itemName) %>
+<# Detail CRUD Variables #>
+<% const detailCrud = hasManyDetail.detailCrud %>
+<% const detailCrudModel = detailCrud.model %>
+<% const itemVarName = camelCase(detailCrud.settings.itemName) %>
+<% const colspanSize = detailCrud.inputs.length + 1 %>
+<% const collectionVarName = 'detail' + pascalCase(detailCrud.settings.collectionName) %>
+<% const viewsFolderName = `${detailCrud.section.getFolderName()}.${paramCase(detailCrud.plural)}` %>
+<% const modelPrimaryKeyIsSpecial = detailCrudModel.getPrimaryKeyColumn().isSpecialPrimaryKey() %>
+<% const detailCrudModelPrimaryKeyArgument = modelPrimaryKeyIsSpecial ? `'{{ $${itemVarName}->${detailCrudModel.getPrimaryKeyName()} }}'` : `{{ $${itemVarName}->${detailCrudModel.getPrimaryKeyName()} }}` %>
+<% const deletingItemVarName = modelPrimaryKeyIsSpecial ? `'{{ $deleting${pascalCase(itemVarName)} }}'` : `{{ $deleting${pascalCase(itemVarName)} }}` %>
+<# Setup #>
+<% InputRenderer.setProject(detailCrud.project) %>
+<# --- #>
+<div>
+    <div class="vtheme(crud.index.tools)">
+        <x-ui.input wire:model.live="<$ collectionVarName $>Search" type="text" placeholder="Search <$ this.helpers.lang(detailCrud.settings.collectionTitle) $>..." />
+
+        @can('create', <$ detailCrudModel.class $>::class)
+        <a wire:click="new<$ pascalCase(itemVarName) $>()">
+            <x-ui.button>New</x-ui.button>
+        </a>
+        @endcan
+    </div>
+
+    {{-- Modal --}}
+    <x-ui.modal wire:model="showingModal">
+        <div class="overflow-hidden border rounded-lg bg-white">
+            <form class="vtheme(crud.form)" wire:submit.prevent="save">
+                <div class="vtheme(crud.form.inputs.container)">
+                    <% for (let input of detailCrud.inputs) { %>
+                        <$ await InputRenderer.render(input) $>
+                    <% } %>
+                </div>
+    
+                <div class="flex justify-between mt-4 border-t border-gray-50 bg-gray-50 p-4">
+                    <div>
+                        <!-- Other buttons here -->
+                    </div>
+                    <div>
+                        <x-ui.button type="submit">Save</x-ui.button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </x-ui.modal>
+
+    {{-- Delete Modal --}}
+    <x-ui.modal.confirm wire:model="confirming<$ pascalCase(itemVarName) $>Deletion">
+        <x-slot name="title">
+            {{ __('Delete') }}
+        </x-slot>
+
+        <x-slot name="content">
+            {{ __('Are you sure?') }}
+        </x-slot>
+    
+        <x-slot name="footer">
+            <x-ui.button wire:click="$toggle('confirming<$ pascalCase(itemVarName) $>Deletion')" wire:loading.attr="disabled">
+                {{ __('Cancel') }}
+            </x-ui.button>
+    
+            <x-ui.button.danger class="ml-3" wire:click="delete<$ pascalCase(itemVarName) $>(<$ deletingItemVarName $>)" wire:loading.attr="disabled">
+                {{ __('Delete') }}
+            </x-ui.button.danger>
+        </x-slot>
+    </x-ui.modal.confirm>
+
+    {{-- Index Table --}}
+    <x-ui.container.table>
+        <x-ui.table>
+            <x-slot name="head">
+                <% for (let input of detailCrud.getInputsForIndex()) { %>
+                    <x-ui.table.header for-detailCrud wire:click="sortBy('<$ input.column.name $>')"><$ this.helpers.lang(input.label) $></x-ui.table.header>
+                <% } %>
+                <x-ui.table.action-header>Actions</x-ui.table.action-header>
+            </x-slot>
+
+            <x-slot name="body">
+                @forelse ($<$ collectionVarName $> as $<$ itemVarName $>)
+                <x-ui.table.row wire:loading.class.delay="vtheme(default.delay)">
+                    <% for (let input of detailCrud.getInputsForIndex()) { %>
+                        <###>
+                        <% if(input.isImage()) { %>
+                            <x-ui.table.column for-detailCrud>
+                                <x-ui.table.image url="{{ asset('storage/' . $<$ itemVarName $>-><$ input.column.name $>) }}" alt="{{ $<$ itemVarName $>-><$ input.column.name $> }}" />
+                            </x-ui.table.column>
+                        <% } else { %>
+                            <x-ui.table.column for-detailCrud>{{ $<$ itemVarName $>-><$ input.column.name $> }}</x-ui.table.column>
+                        <% } %>
+                    <% } %>
+                    <x-ui.table.action-column>
+                        @can('update', $<$ itemVarName $>)
+                        <x-ui.action wire:click="edit<$ pascalCase(itemVarName) $>(<$ detailCrudModelPrimaryKeyArgument $>)">Edit</x-ui.action>
+                        @endcan
+                        @can('delete', $<$ itemVarName $>)
+                        <x-ui.action.danger wire:click="confirm<$ pascalCase(itemVarName) $>Deletion(<$ detailCrudModelPrimaryKeyArgument $>)">Delete</x-ui.action.danger>
+                        @endcan
+                    </x-ui.table.action-column>
+                </x-ui.table.row>
+                @empty
+                <x-ui.table.row>
+                    <x-ui.table.column colspan="<$ colspanSize $>">No <$ this.helpers.lang(detailCrud.settings.collectionTitle) $> found.</x-ui.table.column>
+                </x-ui.table.row>
+                @endforelse
+            </x-slot>
+        </x-ui.table>
+        
+        <div class="vtheme(crud.pagination.container)">
+            {{ $<$ collectionVarName $>->links() }}
+        </div>
+    </x-ui.container.table>
+</div>

@@ -1,0 +1,35 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:RENDERABLE [ renderable = crud/views/filament/FilamentEditComponentRenderable(crud) ] #>
+<####>
+
+
+<% const pascalCase = this.require('pascalCase') %>
+<% const parentResourceName = pascalCase(`${this.crud.name}Resource`) %>
+
+namespace App\Filament\Resources\<$ this.crud.section.getFileBasePath() $>\<$ parentResourceName $>\Pages;
+
+use Filament\Actions;
+use Filament\Resources\Pages\EditRecord;
+use App\Filament\Resources\<$ this.crud.section.getFileBasePath() $>\<$ parentResourceName $>;
+// hook:IMPORTS
+
+class <$ this.filenameWithoutExtension $> extends EditRecord
+{
+    // hook:TRAITS
+    protected static string $resource = <$ parentResourceName $>::class;
+
+    // hook:METHODS
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\DeleteAction::make(),
+            // hook:HEADER_ACTIONS
+        ];
+    }
+}

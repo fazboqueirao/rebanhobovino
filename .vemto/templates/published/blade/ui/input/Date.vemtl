@@ -1,0 +1,12 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+@props(['disabled' => false])
+
+<x-ui.input 
+    :disabled="$disabled" 
+    type="date"
+    :attributes="$attributes"
+/>

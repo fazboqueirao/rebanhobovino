@@ -1,0 +1,128 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ detail = BelongsToManyDetail ] #>
+<# DATA:RENDERABLE [ renderable = crud/views/filament/FilamentBelongsToManyRelationManagerRenderable(detail) ] #>
+<####>
+
+<% const pascalCase = this.require('pascalCase') %>
+<% const parentResourceName = pascalCase(`${this.detail.crud.name}Resource`) %>
+<% const tableHasSoftDeletes = this.detail.detailCrud.table.hasSoftDeletes() %>
+<% const isManyToManyDetail = this.detail.detailCrud.isManyToManyDetail() %>
+<% const firstRelatedModelCrud = this.detail.relationship.relatedModel.getFirstCrud() %>
+<% const relationCrudInputs = (isManyToManyDetail && firstRelatedModelCrud) ? new Set([...firstRelatedModelCrud.getInputsForForms(), ...this.detail.detailCrud.getInputsForForms()]) : this.detail.detailCrud.getInputsForForms() %>
+<% const relationCrudTableColumns = (isManyToManyDetail && firstRelatedModelCrud) ? new Set([...firstRelatedModelCrud.getInputsForIndex(), ...this.detail.detailCrud.getInputsForIndex()]) : this.detail.detailCrud.getInputsForIndex() %>
+
+namespace App\Filament\Resources\<$ this.detail.crud.section.getFileBasePath() $>\<$ parentResourceName $>\RelationManagers;
+
+use Filament\Forms;
+use Filament\Tables;
+use Filament\Forms\Form;
+use Filament\Tables\Table;
+use Filament\Forms\Components\Grid;
+use Illuminate\Database\Eloquent\Builder;
+<% if(tableHasSoftDeletes) { %>
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+<% } %>
+use Filament\Resources\RelationManagers\RelationManager;
+use App\Filament\Resources\<$ this.detail.crud.section.getFileBasePath() $>\<$ this.detail.crud.name $>Resource;
+<% for(let input of relationCrudInputs) { %>
+use Filament\Forms\Components\<$ pascalCase(input.filamentSettings.formData.inputType) $>;
+<% } %>
+<% for(let input of relationCrudTableColumns) { %>
+use Filament\Tables\Columns\<$ pascalCase(input.filamentSettings.columnData.columnType) $>;
+<% } %>
+// hook:IMPORTS
+
+class <$ this.filenameWithoutExtension $> extends RelationManager
+{
+    // hook:TRAITS
+    protected static string $relationship = '<$ this.detail.relationship.name $>';
+
+    protected static ?string $recordTitleAttribute = '<$ this.detail.relationship.relatedModel.table.getLabelColumnName() $>';
+
+    // hook:METHODS
+
+    public function form(Form $form): Form
+    {
+        // hook:BEFORE_FORM
+        return $form
+            ->schema([
+                Grid::make(['default' => 1])->schema([
+                    <% for(let input of relationCrudInputs) { %>
+                        <import template="crud/views/filament/templates/FilamentForm.vemtl">
+                    <% } %>
+                    // hook:FORM_FIELDS
+                ])
+            ]);
+    }
+
+    public function table(Table $table): Table
+    {
+        // hook:BEFORE_TABLE
+        return $table
+            ->columns([
+                <% for(let input of relationCrudTableColumns) { %>
+                    <import template="crud/views/filament/templates/FilamentTable.vemtl">
+                <% } %>
+                // hook:TABLE_COLUMNS
+            ])
+            ->filters([
+                // hook:TABLE_FILTERS
+                <% if(tableHasSoftDeletes) { %>
+                    Tables\Filters\TrashedFilter::make(),
+                <% } %>
+            ])
+            ->headerActions([
+                // hook:TABLE_HEADER_ACTIONS
+                <% if(!isManyToManyDetail || firstRelatedModelCrud) { %>
+                    Tables\Actions\CreateAction::make(),
+                <% } %>
+                
+                <% if(isManyToManyDetail) { %>
+                    Tables\Actions\AttachAction::make()
+                        ->form(fn (Tables\Actions\AttachAction $action): array => [
+                            $action->getRecordSelect(),
+
+                            <% for (let input of this.detail.detailCrud.getInputsForForms()) { %>
+                                <import template="crud/views/filament/templates/FilamentForm.vemtl">
+                            <% } %>
+                        ]),
+                <% } %>
+            ])
+            ->actions([
+                // hook:TABLE_ACTIONS
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
+                <% if(tableHasSoftDeletes) { %>
+                    Tables\Actions\ForceDeleteAction::make(),
+                    Tables\Actions\RestoreAction::make(),
+                <% } %>
+                <# --- #>
+                <% if(isManyToManyDetail) { %>
+                    Tables\Actions\DetachAction::make(),
+                <% } %>
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                    // hook:TABLE_BULK_ACTIONS
+                    <% if(tableHasSoftDeletes) { %>
+                        Tables\Actions\RestoreBulkAction::make(),
+                        Tables\Actions\ForceDeleteBulkAction::make(),
+                    <% } %>
+                    <# --- #>
+                    <% if(isManyToManyDetail) { %>
+                        Tables\Actions\DetachBulkAction::make(),
+                    <% } %>
+                ]),
+            ])
+            <% if(tableHasSoftDeletes) { %>
+            ->modifyQueryUsing(fn (Builder $query) => $query->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]))
+            <% } %>;
+    }
+}

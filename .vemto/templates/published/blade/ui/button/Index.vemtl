@@ -1,0 +1,8 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<button {{ $attributes->merge(['type' => 'submit', 'class' => 'vtheme(ui.button)']) }}>
+    {{ $slot }}
+</button>

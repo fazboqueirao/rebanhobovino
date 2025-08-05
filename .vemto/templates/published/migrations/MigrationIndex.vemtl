@@ -1,0 +1,88 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ index = Index ] #>
+<# DATA:EXPOSE_LOCAL [ exposed_variables = index ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<% if (index.hasValidColumns()) { %>
+    <% if (index.isCommon()) { %>
+        <% if (index.isSingleColumn()) { %>
+            $table->index('<$ index.columns[0] $>');
+        <% } else { %>
+            $table->index([
+                <% for (let column of index.columns) { %>
+                '<$ column $>',
+                <% } %>
+            ]);
+        <% } %>
+    <% } %>
+    <# #>
+    <% if (index.isForeign()) { %>
+        $table->foreign('<$ index.columns[0] $>')
+            ->references('<$ index.referencesColumn?.name $>')
+            ->on('<$ index.onTable?.name $>')
+            <% if (index.hasOnDelete()) { %>
+            ->onDelete('<$ index.onDelete $>')
+            <% } %>
+            <% if (index.hasOnUpdate()) { %>
+            ->onUpdate('<$ index.onUpdate $>')
+            <% } %>;
+    <% } %>
+    <# #>
+    <% if (index.isUnique()) { %>
+        <% if (index.isSingleColumn()) { %>
+            $table->unique('<$ index.columns[0] $>');
+        <% } else { %>
+            $table->unique([
+                <% for (let column of index.columns) { %>
+                '<$ column $>',
+                <% } %>
+            ]);
+        <% } %>
+    <% } %>
+    <# #>
+    <% if (index.isPrimary()) { %>
+        <% if (index.isSingleColumn()) { %>
+            $table->primary('<$ index.columns[0] $>');
+        <% } else { %>
+            $table->primary([
+                <% for (let column of index.columns) { %>
+                '<$ column $>',
+                <% } %>
+            ]);
+        <% } %>
+    <% } %>
+    <# #>
+    <% if (index.isFullText()) { %>
+        <% if (index.isSingleColumn()) { %>
+            $table->fullText('<$ index.columns[0] $>')
+                <# Language specific index (PostgreSQL) #>
+                <% if (index.hasLanguage()) { %>
+                    ->language(<$ index.language $>)
+                <% } %>;
+        <% } else { %>
+            $table->fullText([
+                <% for (let column of index.columns) { %>
+                '<$ column $>',
+                <% } %>
+            ])
+            <% if (index.hasLanguage()) { %>
+                ->language(<$ index.language $>)
+            <% } %>;
+        <% } %>
+    <% } %>
+    <# #>
+    <% if (index.isSpatial()) { %>
+        <% if (index.isSingleColumn()) { %>
+            $table->spatialIndex('<$ index.columns[0] $>');
+        <% } else { %>
+            $table->spatialIndex([
+                <% for (let column of index.columns) { %>
+                '<$ column $>',
+                <% } %>
+            ]);
+        <% } %>
+    <% } %>
+<% } %>

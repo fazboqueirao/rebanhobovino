@@ -1,0 +1,10 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+@props(['value'])
+
+<label {{ $attributes->merge(['class' => 'vtheme(ui.label)']) }}>
+    {{ $value ?? $slot }}
+</label>

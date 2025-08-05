@@ -1,0 +1,190 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:RENDERABLE [ renderable = crud/views/filament/FilamentResourceRenderable(crud) ] #>
+<####>
+
+<% const capitalCase = this.require('capitalCase') %>
+<% const pascalCase = this.require('pascalCase') %>
+<% const tableHasSoftDeletes = this.crud.table.hasSoftDeletes() %>
+<% const navigationIcon = this.crud.filamentSettings.navigationIcon ?? 'heroicon-o-rectangle-stack' %>
+
+namespace App\Filament\Resources\<$ this.crud.section.getFileBasePath() $>;
+
+use Filament\Forms;
+use Filament\Tables;
+use Filament\Forms\Form;
+use Filament\Tables\Table;
+use Livewire\Component;
+use <$ this.crud.model.class $>;
+use Filament\Resources\Resource;
+use Illuminate\Database\Eloquent\Builder;
+use App\Filament\Resources\<$ this.crud.section.getFileBasePath() $>\<$ this.filenameWithoutExtension $>\Pages;
+<% if(tableHasSoftDeletes) { %>
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+<% } %>
+use App\Filament\Resources\<$ this.crud.section.getFileBasePath() $>\<$ this.filenameWithoutExtension $>\RelationManagers;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Section;
+<% for(let input of this.crud.inputs) { %>
+use Filament\Forms\Components\<$ pascalCase(input.filamentSettings.formData.inputType) $>;
+use Filament\Tables\Columns\<$ pascalCase(input.filamentSettings.columnData.columnType) $>;
+<% } %>
+// hook:IMPORTS
+
+class <$ this.filenameWithoutExtension $> extends Resource
+{
+    // hook:TRAITS
+
+    // hook:BEFORE_VARIABLES
+    protected static ?string $model = <$ this.crud.model.name $>::class;
+
+    protected static ?string $navigationIcon = '<$ navigationIcon $>';
+
+    <% if(this.crud.filamentSettings.recordTitle) { %>
+    protected static ?string $recordTitleAttribute = '<$ this.crud.filamentSettings.recordTitle $>';
+    <% } %>
+
+    <% if(this.crud.filamentSettings.shouldSkipAuthorization) { %>
+    protected static bool $shouldSkipAuthorization = true;
+    <% } %>
+
+    <% if(!this.crud.filamentSettings.hasTitleCaseModelLabel) { %>
+    protected static bool $hasTitleCaseModelLabel = false;
+    <% } %>
+
+    <% if(this.crud.filamentSettings.navigationOrder) { %>
+    protected static ?int $navigationSort = <$ this.crud.filamentSettings.navigationOrder $>;
+    <% } %>
+
+    <% if(this.crud.filamentSettings.navigationGroup) { %>
+    protected static ?string $navigationGroup = '<$ this.crud.filamentSettings.navigationGroup $>';
+    <% } %>
+
+    <% if(this.crud.filamentSettings.slug && this.crud.filamentSettings.slug != pascalCase(this.crud.plural)) { %>
+    protected static ?string $slug = '<$ this.crud.filamentSettings.slug $>';
+    <% } %>
+
+    <% if(this.crud.filamentSettings.modelLabel && this.project.getDefaultTranslation(this.crud.filamentSettings.modelLabel)?.length) { %>
+        public static function getModelLabel(): string
+        {
+            return <$ this.helpers.toTranslatableFormat(this.crud.filamentSettings.modelLabel) $>;
+        }
+    <% } %>
+    
+    <% if(this.crud.filamentSettings.pluralModelLabel && this.project.getDefaultTranslation(this.crud.filamentSettings.pluralModelLabel)?.length) { %>
+        public static function getPluralModelLabel(): string
+        {
+            return <$ this.helpers.toTranslatableFormat(this.crud.filamentSettings.pluralModelLabel) $>;
+        }
+    <% } %>
+    
+    <% if(this.crud.filamentSettings.navigationLabel && this.project.getDefaultTranslation(this.crud.filamentSettings.navigationLabel)?.length) { %>
+        public static function getNavigationLabel(): string
+        {
+            return <$ this.helpers.toTranslatableFormat(this.crud.filamentSettings.navigationLabel) $>;
+        }
+    <% } %>
+    // hook:AFTER_VARIABLES
+
+    public static function form(Form $form): Form
+    {
+        // hook:BEFORE_FORM
+        return $form
+            ->schema([
+                Section::make()
+                    ->schema([
+                        Grid::make(['default' => 1])
+                            ->schema([
+                                <% for(let input of this.crud.getInputsForForms()) { %>
+                                    <import template="crud/views/filament/templates/FilamentForm.vemtl">
+                                <% } %>
+                                // hook:FORM_FIELDS
+                            ])
+                    ])
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        // hook:BEFORE_TABLE
+        return $table
+            ->poll('60s')
+            ->columns([
+                <% for(let input of this.crud.getInputsForIndex()) { %>
+                    <import template="crud/views/filament/templates/FilamentTable.vemtl">
+                <% } %>
+                // hook:TABLE_COLUMNS
+            ])
+            ->filters([
+                <% if(tableHasSoftDeletes) { %>
+                    Tables\Filters\TrashedFilter::make(),
+                <% } %>
+                // hook:TABLE_FILTERS
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
+                // hook:TABLE_ACTIONS
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                    // hook:TABLE_BULK_ACTIONS
+                    <% if(tableHasSoftDeletes) { %>
+                        Tables\Actions\ForceDeleteBulkAction::make(),
+                        Tables\Actions\RestoreBulkAction::make(),
+                    <% } %>
+                ]),
+            ])
+            ->defaultSort('<$ this.crud.model.getPrimaryKeyName() $>', 'desc');
+    }
+
+    public static function getRelations(): array
+    {
+        // hook:BEFORE_RELATIONS
+        return [
+            <% for(let detail of this.crud.hasManyDetails) { %>
+                RelationManagers\<$ detail.relationship.relatedModel.plural $>RelationManager::class,
+            <% } %>
+            <# --- #>
+            <% for(let detail of this.crud.morphManyDetails) { %>
+                RelationManagers\<$ detail.relationship.relatedModel.plural $>RelationManager::class,
+            <% } %>
+            <# --- #>
+            <% for(let detail of this.crud.belongsToManyDetails) { %>
+                RelationManagers\<$ detail.relationship.relatedModel.plural $>RelationManager::class,
+            <% } %>
+            <# --- #>
+            <% for(let detail of this.crud.morphToManyDetails) { %>
+                RelationManagers\<$ detail.relationship.relatedModel.plural $>RelationManager::class,
+            <% } %>
+            // hook:RELATIONS
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        // hook:BEFORE_PAGES
+        return [
+            'index' => Pages\List<$ this.crud.plural $>::route('/'),
+            'create' => Pages\Create<$ this.crud.name $>::route('/create'),
+            'view' => Pages\View<$ this.crud.name $>::route('/{record}'),
+            'edit' => Pages\Edit<$ this.crud.name $>::route('/{record}/edit'),
+            // hook:PAGES
+        ];
+    }
+
+    <% if(tableHasSoftDeletes) { %>
+        public static function getEloquentQuery(): Builder
+        {
+            return parent::getEloquentQuery()
+                ->withoutGlobalScopes([
+                    SoftDeletingScope::class,
+                ]);
+        }
+    <% } %>
+}

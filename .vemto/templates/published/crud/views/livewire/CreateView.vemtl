@@ -1,0 +1,49 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:RENDERABLE [ renderable = crud/views/livewire/LivewireCreateViewRenderable(crud) ] #>
+<####>
+<% const crud = this.crud %>
+<% const model = crud.model %>
+<% const table = model.table %>
+<% const modelName = crud.model.name %>
+<% const camelCase = this.require("camelCase") %>
+<% const itemVarName = camelCase(crud.settings.itemName) %>
+<% const collectionVarName = camelCase(crud.settings.collectionName) %>
+
+<% const InputRenderer = this.require("InputRenderer") %>
+<% InputRenderer.setProject(crud.project) %>
+<# --- #>
+<div class="vtheme(crud.container)">
+    <x-ui.breadcrumbs>
+        <x-ui.breadcrumbs.link href="/<$ crud.section.routeBasePath $>"><$ crud.section.name $></x-ui.breadcrumbs.link>
+        <x-ui.breadcrumbs.separator/>
+        <x-ui.breadcrumbs.link href="{{ route('<$ crud.getIndexRouteName() $>') }}"><$ this.helpers.lang(crud.settings.collectionTitle) $></x-ui.breadcrumbs.link>
+        <x-ui.breadcrumbs.separator/>
+        <x-ui.breadcrumbs.link active>Create <$ this.helpers.lang(crud.settings.itemTitle) $></x-ui.breadcrumbs.link>
+    </x-ui.breadcrumbs>
+
+    <div class="vtheme(crud.header)">
+        <h1>Create <$ this.helpers.lang(crud.settings.itemTitle) $></h1>
+    </div>
+
+    <div class="vtheme(crud.form.container)">
+        <form class="vtheme(crud.form)" wire:submit.prevent="save">
+            <div class="vtheme(crud.form.inputs.container)">
+                <% for (let input of crud.inputs) { %>
+                    <$ await InputRenderer.render(input) $>
+                <% } %>
+            </div>
+
+            <div class="vtheme(crud.form.buttons-container)">
+                <div>
+                    <!-- Other buttons here -->
+                </div>
+                <div>
+                    <x-ui.button type="submit">Save</x-ui.button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

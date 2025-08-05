@@ -1,0 +1,8 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<td {!! $attributes->merge(['class' => 'vtheme(crud.table.body.action-col)']) !!}>
+    {{ $slot }}
+</td>

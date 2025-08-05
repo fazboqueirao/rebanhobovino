@@ -1,0 +1,38 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:RENDERABLE [ renderable = database/DatabaseSeederRenderable() ] #>
+<####>
+
+
+namespace Database\Seeders;
+
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+
+<% const authModel = this.project.getAuthModel() %>
+use App\Models\<$ authModel.name $>;
+
+class DatabaseSeeder extends Seeder
+{
+    /**
+     * Seed the application's database.
+     */
+    public function run(): void
+    {
+        <% if(authModel) { %>
+        <$ authModel.name $>::factory()->count(1)->create([
+            'email' => 'admin@admin.com',
+            'password' => \Hash::make('admin')
+        ]);
+        <% } %>
+
+        <% for(let model of this.project.models) { %>
+            <% if(model.callSeeder) { %>
+                $this->call(<$ model.name $>Seeder::class);
+            <% } %>
+        <% } %>
+    }
+}

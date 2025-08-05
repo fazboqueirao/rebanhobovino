@@ -1,0 +1,53 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ table = Table ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<# TEMPLATE VARIABLES #>
+<# const pascalCase = TemplateRequire('pascalCase') #>
+<####>
+
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+<% if (this.project.laravelVersionGreaterThanOrEqualTo('9')) { %>
+return new class extends Migration
+<% } else { %>
+class ChangeTablesMigration extends Migration
+<% } %>
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        <% if (this.table.wasRenamed()) { %>
+            Schema::rename('<$ this.table.getOldName() $>', '<$ this.table.name $>');
+        <% } %>
+        <% if (this.table.isRemoved()) { %>
+            Schema::dropIfExists('<$ this.table.name $>');
+        <% } %>
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        <% if (this.table.wasRenamed()) { %>
+            Schema::rename('<$ this.table.name $>', '<$ this.table.getOldName() $>');
+        <% } %>
+        <% if (this.table.isRemoved()) { %>
+            <import template="migrations/CreationSchema.vemtl">
+        <% } %>
+    }
+}<% if (this.project.laravelVersionGreaterThanOrEqualTo('9')) { %>;<% } %>

@@ -1,0 +1,86 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:RENDERABLE [ renderable = crud/views/livewire/LivewireEditComponentRenderable(crud) ] #>
+<####>
+
+
+<% const crud = this.crud %>
+<% const modelName = crud.model.name %>
+<% const camelCase = this.require('camelCase') %>
+<% const pascalCase = this.require('pascalCase') %>
+<% const paramCase = this.require('paramCase') %>
+<% const itemVarName = camelCase(crud.settings.itemName) %>
+<% const collectionVarName = camelCase(crud.settings.collectionName) %>
+<% const viewsFolderName = `${crud.section.getFolderName()}.${paramCase(crud.plural)}` %>
+
+namespace <$ crud.livewireNamespace $>;
+  
+use Livewire\Component;
+use App\Models\<$ modelName $>;
+use Illuminate\Support\Collection;
+use <$ crud.livewireFormsNamespace $>\UpdateForm;
+<% for (let input of crud.getBelongsToInputs()) { %>
+use App\Models\<$ input.getRelatedModelName() $>;
+<% } %>
+// hook:IMPORTS
+ 
+class <$ this.filenameWithoutExtension $> extends Component
+{
+    // hook:TRAITS
+    public ?<$ modelName $> $<$ itemVarName $> = null;
+
+    // hook:BEFORE_VARIABLES
+    public UpdateForm $form;
+    <# --- #>
+    <% for (let input of crud.getBelongsToInputs()) { %>
+    <% const model = input.getRelatedModel() %>
+    public Collection $<$ camelCase(model.plural) $>;
+    <% } %>
+    // hook:AFTER_VARIABLES
+
+    public function mount(<$ modelName $> $<$ itemVarName $>)
+    {
+        $this->authorize('view-any', <$ modelName $>::class);
+
+        // hook:BEFORE_MOUNT
+        $this-><$ itemVarName $> = $<$ itemVarName $>;
+
+        $this->form->set<$ modelName $>($<$ itemVarName $>);
+        <# --- #>
+        <% for (let input of crud.getBelongsToInputs()) { %>
+        <# --- #>
+        <% const model = input.getRelatedModel() %>
+        <% const label = model.table.getLabelColumnName() %>
+        <% const primaryKey = model.table.getPrimaryKeyName() %>
+        <# --- #>
+        $this-><$ camelCase(model.plural) $> = <$ model.name $>::pluck('<$ label $>', '<$ primaryKey $>');
+        <% } %>
+        // hook:AFTER_MOUNT
+    }
+
+    public function save()
+    {
+        $this->authorize('update', $this-><$ itemVarName $>);
+        
+        // hook:BEFORE_SAVE
+        $this->validate();
+        // hook:AFTER_VALIDATE
+
+        $this->form->save();
+
+        $this->dispatch('saved');
+    }
+
+    public function render()
+    {
+        // hook:BEFORE_RENDER
+        return view('livewire.<$ viewsFolderName $>.edit', [
+            // hook:RENDER_PARAMETERS
+        ]);
+    }
+    // hook:METHODS
+}

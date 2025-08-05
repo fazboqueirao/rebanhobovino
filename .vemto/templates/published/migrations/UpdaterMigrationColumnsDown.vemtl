@@ -1,0 +1,60 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ table = Table ] #>
+<# DATA:RENDERABLE [ renderable = CustomRenderable() ] #>
+<####>
+
+<# This tempalte is used to revert changes on an updater migration (down method) #>
+<# New columns #>
+<% for (let column of this.table.getNewColumns()) { %>
+    $table->dropColumn('<$ column.name $>');
+<% } %>
+<#  #>
+<#  #>
+<# Changed columns #>
+<% for (let newColumn of this.table.getNotRenamedChangedColumns()) { %>
+    <# Gets old column data from new column #>
+    <% let column = newColumn.old() %>
+    <import template="migrations/MigrationColumn.vemtl" addChangeMethod="true">
+<% } %>
+<#  #>
+<#  #>
+<# New indexes #>
+<% for (let index of this.table.getNewIndexes()) { %>
+    <import template="migrations/MigrationDropIndex.vemtl">
+<% } %>
+<#  #>
+<#  #>
+<# Removed indexes #>
+<% for (let index of this.table.getRemovedIndexes()) { %>
+    <import template="migrations/MigrationIndex.vemtl">
+<% } %>
+<#  #>
+<#  #>
+<# Changed indexes #>
+<% for (let newIndex of this.table.getChangedIndexes()) { %>
+    <# Gets old index data from new index #>
+    <% let index = newIndex.old() %>
+    <# It drops and recreates the index #>
+    <import template="migrations/MigrationDropIndex.vemtl">
+    <import template="migrations/MigrationIndex.vemtl">
+<% } %>
+<#  #>
+<#  #>
+<# Columns that changed the unique status from true to false #>
+<% for (let column of this.table.getColumnsWithRemovedUnique()) { %>
+    $table->unique('<$ column.name $>');
+<% } %>
+<#  #>
+<#  #>
+<# Renamed columns #>
+<% for (let column of this.table.getRenamedColumns()) { %>
+    $table->renameColumn('<$ column.name $>', '<$ column.getOldName() $>');
+<% } %>
+<#  #>
+<#  #>
+<# Removed columns #>
+<% for (let column of this.table.getRemovedColumns()) { %>
+    <import template="migrations/MigrationColumn.vemtl" enableColumnAfterUsage="true">
+<% } %>

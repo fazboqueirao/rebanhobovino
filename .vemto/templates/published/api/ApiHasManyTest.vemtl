@@ -1,0 +1,104 @@
+<?php
+
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:MODEL [ relationship = Relationship ] #>
+<# DATA:MODEL [ relationshipCrud = Crud ] #>
+<# DATA:RENDERABLE [ renderable = crud/api/ApiHasManyTestRenderable(crud, relationship) ] #>
+<####>
+
+<# TEMPLATE VARIABLES #>
+<% const snakeCase = this.require('snakeCase') %>
+<% const camelCase = this.require('camelCase') %>
+<% const paramCase = this.require('paramCase') %>
+<% const pascalCase = this.require('pascalCase') %>
+<% const modelName = this.crud.model.name %>
+<% const modelNameCamelCase = camelCase(modelName) %>
+<% let relModelName = this.relationship.relatedModel.name %>
+<% let relModelPluralCamelCase = camelCase(this.relationship.relatedModel.plural) %>
+<% const authModel = this.project.getAuthModel() %>
+<####>
+
+use <$ authModel.getClassString() $>;
+use <$ this.crud.model.getClassString() $>;
+use <$ this.relationshipCrud.model.getClassString() $>;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
+
+uses(RefreshDatabase::class, WithFaker::class);
+
+beforeEach(function () {
+    $this->withoutExceptionHandling();
+
+    <% if(authModel !== null) { %>
+        $user = <$ authModel.name $>::factory()->create(['email' => 'admin@admin.com']);
+
+        Sanctum::actingAs($user, [], 'web');
+    <% } %>
+});
+
+test('it gets <$ snakeCase(this.crud.model.name) $> <$ snakeCase(this.relationship.relatedModel.plural) $>', function() {
+    $<$ modelNameCamelCase $> = <$ modelName $>::factory()->create();
+    $<$ relModelPluralCamelCase $> = <$ relModelName $>::factory()->count(2)->create([
+        '<$ this.relationship.foreignKey.name $>' => $<$ modelNameCamelCase $>-><$ this.crud.model.getPrimaryKeyName() $>
+    ]);
+
+    $response = $this->getJson(route('api.<$ paramCase(this.crud.model.plural) $>.<$ paramCase(this.relationship.relatedModel.plural) $>.index', $<$ modelNameCamelCase $>));
+
+    $response->assertOk()
+        ->assertSee($<$ relModelPluralCamelCase $>[0]-><$ this.relationship.relatedModel.table.getLabelColumnName() $>);
+});
+
+test('it stores the <$ snakeCase(this.crud.model.name) $> <$ snakeCase(this.relationship.relatedModel.plural) $>', function() {
+    $<$ modelNameCamelCase $> = <$ modelName $>::factory()->create();
+    $data = <$ relModelName $>::factory()->make([
+        '<$ this.relationship.foreignKey.name $>' => $<$ modelNameCamelCase $>-><$ this.crud.model.getPrimaryKeyName() $>
+    ])->toArray();
+
+    <% for (let input of this.relationshipCrud.getPasswordInputs()) { %>
+        <###>
+        <% if(input.isRequiredOnCreation()) { %>
+            $data['<$ input.name $>'] = \Str::random('8');
+        <% } %>
+    <% } %>
+
+    $response = $this->postJson(route('api.<$ paramCase(this.crud.model.plural) $>.<$ paramCase(this.relationship.relatedModel.plural) $>.store', $<$ modelNameCamelCase $>), $data);
+
+    <% for(let input of this.relationshipCrud.getPasswordInputs()) { %>
+        <###>
+        <% if(input.isRequiredOnCreation()) { %>
+            unset($data['<$ input.name $>']);
+        <% } %>
+    <% } %>
+    
+    <% for(let column of this.relationship.relatedModel.getNotFillableColumns()) { %>
+        <###>
+        <up if(!this.relationship.relatedModel.hidden.includes(column.name) && !column.isPrimaryKey()) { up>
+            unset($data['<$ column.name $>']);
+        <up } up>
+    <% } %>
+    <###>
+    <% for(let columnName of this.relationship.relatedModel.appends) { %>
+        unset($data['<$ columnName $>']);
+    <% } %>
+    <###>
+    <% for(let column of this.relationship.relatedModel.getFillableColumnsWithoutInputs()) { %>
+        <###>
+        <% if(!this.relationship.relatedModel.hidden.includes(column.name) && !column.isPrimaryKey()) { %>
+            unset($data['<$ column.name $>']);
+        <% } %>
+    <% } %>
+    
+    $this->assertDatabaseHas('<$ this.relationship.relatedModel.table.name $>', $data);
+
+    $response
+        ->assertStatus(201)
+        ->assertJsonFragment($data);
+
+    $<$ camelCase(relModelName) $> = <$ relModelName $>::latest('<$ this.relationship.relatedModel.table.getPrimaryKeyName() $>')->first();
+
+    $this->assertEquals($<$ modelNameCamelCase $>-><$ this.crud.model.getPrimaryKeyName() $>, $<$ camelCase(relModelName) $>-><$ this.relationship.foreignKey.name $>);
+});

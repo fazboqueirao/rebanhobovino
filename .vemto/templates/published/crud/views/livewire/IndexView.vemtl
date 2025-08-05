@@ -1,0 +1,103 @@
+<####>
+<# TEMPLATE DATA #>
+<# DATA:MODEL [ project = Project ] #>
+<# DATA:MODEL [ crud = Crud ] #>
+<# DATA:RENDERABLE [ renderable = crud/views/livewire/LivewireIndexViewRenderable(crud) ] #>
+<####>
+<% const crud = this.crud %>
+<% const model = crud.model %>
+<% const table = model.table %>
+<% const modelName = model.name %>
+<% const colspanSize = crud.getInputsForIndex().length + 1 %>
+<% const camelCase = this.require('camelCase') %>
+<% const pascalCase = this.require('pascalCase') %>
+<% const itemVarName = camelCase(crud.settings.itemName) %>
+<% const viewsFolderName = camelCase(model.plural) %>
+<% const collectionVarName = camelCase(crud.settings.collectionName) %>
+<% const modelPrimaryKeyIsSpecial = model.getPrimaryKeyColumn().isSpecialPrimaryKey() %>
+<% const crudModelPrimaryKeyArgument = modelPrimaryKeyIsSpecial ? `'{{ $${itemVarName}->${model.getPrimaryKeyName()} }}'` : `{{ $${itemVarName}->${model.getPrimaryKeyName()} }}` %>
+<% const deletingItemVarName = modelPrimaryKeyIsSpecial ? `'{{ $deleting${pascalCase(itemVarName)} }}'` : `{{ $deleting${pascalCase(itemVarName)} }}` %>
+<# --- #>
+<div class="vtheme(crud.index.container)">
+    <x-ui.breadcrumbs>
+        <x-ui.breadcrumbs.link href="/<$ crud.section.routeBasePath $>"><$ crud.section.name $></x-ui.breadcrumbs.link>
+        <x-ui.breadcrumbs.separator/>
+        <x-ui.breadcrumbs.link active><$ this.helpers.lang(crud.settings.collectionTitle) $></x-ui.breadcrumbs.link>
+    </x-ui.breadcrumbs>
+
+    <div class="vtheme(crud.index.tools)">
+        <x-ui.input wire:model.live="search" type="text" placeholder="Search <$ this.helpers.lang(crud.settings.collectionTitle) $>..." />
+
+        @can('create', <$ crud.model.class $>::class)
+        <a wire:navigate href="{{ route('<$ crud.getRouteNameByTag('create') $>') }}">
+            <x-ui.button>New</x-ui.button>
+        </a>
+        @endcan
+    </div>
+
+    {{-- Delete Modal --}}
+    <x-ui.modal.confirm wire:model="confirmingDeletion">
+        <x-slot name="title">
+            {{ __('Delete') }}
+        </x-slot>
+
+        <x-slot name="content">
+            {{ __('Are you sure?') }}
+        </x-slot>
+    
+        <x-slot name="footer">
+            <x-ui.button wire:click="$toggle('confirmingDeletion')" wire:loading.attr="disabled">
+                {{ __('Cancel') }}
+            </x-ui.button>
+    
+            <x-ui.button.danger class="ml-3" wire:click="delete(<$ deletingItemVarName $>)" wire:loading.attr="disabled">
+                {{ __('Delete') }}
+            </x-ui.button.danger>
+        </x-slot>
+    </x-ui.modal.confirm>
+
+    {{-- Index Table --}}
+    <x-ui.container.table>
+        <x-ui.table>
+            <x-slot name="head">
+                <% for (let input of crud.getInputsForIndex()) { %>
+                    <x-ui.table.header for-crud wire:click="sortBy('<$ input.column.name $>')"><$ this.helpers.lang(input.label) $></x-ui.table.header>
+                <% } %>
+                <x-ui.table.action-header>Actions</x-ui.table.action-header>
+            </x-slot>
+
+            <x-slot name="body">
+                @forelse ($<$ collectionVarName $> as $<$ itemVarName $>)
+                <x-ui.table.row wire:loading.class.delay="vtheme(default.delay)">
+                    <% for (let input of crud.getInputsForIndex()) { %>
+                        <###>
+                        <% if(input.isImage()) { %>
+                            <x-ui.table.column for-crud>
+                                <x-ui.table.image url="{{ asset('storage/' . $<$ itemVarName $>-><$ input.column.name $>) }}" alt="{{ $<$ itemVarName $>-><$ input.column.name $> }}" />
+                            </x-ui.table.column>
+                        <% } else { %>
+                            <x-ui.table.column for-crud>{{ $<$ itemVarName $>-><$ input.column.name $> }}</x-ui.table.column>
+                        <% } %>
+                    <% } %>
+                    <x-ui.table.action-column>
+                        @can('update', $<$ itemVarName $>)
+                        <x-ui.action wire:navigate href="{{ route('<$ crud.getRouteNameByTag('edit') $>', $<$ itemVarName $>) }}">Edit</x-ui.action>
+                        @endcan
+                        @can('delete', $<$ itemVarName $>)
+                        <x-ui.action.danger wire:click="confirmDeletion(<$ crudModelPrimaryKeyArgument $>)">Delete</x-ui.action.danger>
+                        @endcan
+                    </x-ui.table.action-column>
+                </x-ui.table.row>
+                @empty
+                <x-ui.table.row>
+                    <x-ui.table.column colspan="<$ colspanSize $>">No <$ this.helpers.lang(crud.settings.collectionTitle) $> found.</x-ui.table.column>
+                </x-ui.table.row>
+                @endforelse
+            </x-slot>
+        </x-ui.table>
+        
+        <div class="vtheme(crud.pagination.container)">
+            {{ $<$ collectionVarName $>->links() }}
+        </div>
+    </x-ui.container.table>
+</div>
