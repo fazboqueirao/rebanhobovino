@@ -3,20 +3,21 @@
 
 Table animal {
   id integer [primary key]
-  id_animal_idade integer [ref: > animal_idade.id]
+  id_animal_tipo integer [ref: > animal_tipo.id]
   id_proprietario integer [ref: > proprietario.id]
   id_fazenda integer [ref: > fazenda.id]
   id_status integer [ref: > status.id]
-  brinco_numero integer [note: 'Numero do Brinco']
-  brinco_cor varchar[50] [note: 'Cor do Brinco']
+  identifacao varchar[50] [note: 'Numero do Brinco ou nome do animal']
+  identicacao_cor varchar[50] [note: 'Cor da identificação se existir - ex: vermelho, azul']
+  nascimento_animal timestamp [note: 'Data de nascimento do animal']
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
   deleted_at timestamp [default: `now()`]
 }
 
-Table animal_idade {
+Table animal_tipo {
   id integer [primary key]
-  faixa_etaria varchar[50] [note: 'Faixa Etária: 0-12 meses, 12-24 meses, 25 meses+']
+  tipo varchar[50] [note: 'Bovino, Caprino, Equino, Suíno, Ovino']
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 }
