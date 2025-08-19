@@ -3,70 +3,70 @@
 
 Table animals {
   id integer [primary key]
-  animal_type_id integer [ref: > animal_type.id]
-  id_proprietario integer [ref: > proprietario.id]
-  id_fazenda integer [ref: > fazenda.id]
+  animal_type_id integer [ref: > animal_types.id]
+  owner_id integer [ref: > owners.id]
+  farm_id integer [ref: > farm.id]
   id_status integer [ref: > status.id]
-  identifacao varchar[50] [note: 'Numero do Brinco ou nome do animal']
-  identicacao_cor varchar[50] [note: 'Cor da identificação se existir - ex: vermelho, azul']
-  nascimento_animal timestamp [note: 'Data de nascimento do animal']
+  identification varchar[50] [note: 'Numero do Brinco ou nome do animal']
+  identification_color varchar[50] [note: 'Cor da identificação se existir - ex: vermelho, azul']
+  animal_birth timestamp [note: 'Data de nascimento do animal']
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
   deleted_at timestamp [default: `now()`]
 }
 
-Table animal_type {
+Table animal_types {
   id integer [primary key]
   tipo varchar[50] [note: 'Bovino, Caprino, Equino, Suíno, Ovino']
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 }
 
-Table animal_vaccine {
+Table animal_vaccines {
   id integer [primary key]
-  id_animal integer [ref: > animal.id]
-  id_vacinacao integer [ref: > vacinacao.id]
-  data_vacinacao timestamp
+  animal_id integer [ref: > animals.id]
+  vaccine_id integer [ref: > vaccines.id]
+  vaccine_date timestamp
 }
 
-Table animal_medicacao {
+Table animal_medications {
   id integer [primary key]
-  id_animal integer [ref: > animal.id]
-  id_medicacao integer [ref: > medicacao.id]
-  data_medicacao timestamp
+  animal_id integer [ref: > animals.id]
+  medication_id integer [ref: > medication.id]
+  medication_data timestamp
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 }
 
-Table fazenda {
+Table farm {
   id integer [primary key]
-  fazenda varchar[50] [note: 'Nome da fazenda']
-  logo varchar[100] [note: 'Logo da fazenda']
-  descricao text [note: 'Descrição da fazenda']
+  farm varchar[50] [note: 'Nome da farm']
+  logo varchar[100] [note: 'Logo da farm']
+  descricao text [note: 'Descrição da farm']
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 }
 
-Table foto {
+Table photos
   id integer [primary key]
-  id_animal integer [ref: > animal.id]
-  arquivo varchar[100]
-  descricao varchar[250]
+  animal_id integer [ref: > animals.id]
+  file varchar[100]
+  description varchar[250]
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
   deleted_at timestamp [default: `now()`]
 }
 
-Table medicacao {
+Table medication {
   id integer [primary key]
-  medicacao varchar[250]
+  medication varchar[250]
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 }
 
-Table proprietario {
+Table owners {
   id integer [primary key]
-  proprietario varchar[150]
+  owner varchar[150]
   brinco_cor varchar[50]
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
@@ -79,10 +79,10 @@ Table status {
   updated_at timestamp [default: `now()`]
 }
 
-Table vacinacao {
+Table vaccines {
   id integer [primary key]
-  vacina varchar[150]
-  data_vacinacao timestamp
+  vaccine varchar[150]
+  vaccine_data timestamp
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 }
