@@ -1,9 +1,9 @@
 // Use DBML to define your database structure
 // Docs: https://dbml.dbdiagram.io/docs
 
-Table animal {
+Table animals {
   id integer [primary key]
-  id_animal_tipo integer [ref: > animal_tipo.id]
+  animal_type_id integer [ref: > animal_type.id]
   id_proprietario integer [ref: > proprietario.id]
   id_fazenda integer [ref: > fazenda.id]
   id_status integer [ref: > status.id]
@@ -15,14 +15,14 @@ Table animal {
   deleted_at timestamp [default: `now()`]
 }
 
-Table animal_tipo {
+Table animal_type {
   id integer [primary key]
   tipo varchar[50] [note: 'Bovino, Caprino, Equino, Suíno, Ovino']
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 }
 
-Table animal_vacina {
+Table animal_vaccine {
   id integer [primary key]
   id_animal integer [ref: > animal.id]
   id_vacinacao integer [ref: > vacinacao.id]
